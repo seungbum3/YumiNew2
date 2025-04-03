@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="20dp"
+    android:background="@drawable/dialog_background"
+    android:orientation="vertical">
+
+    <!-- 프로필 이미지 변경 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_gravity="center"/>
+
+    <ImageView
+        android:id="@+id/profileImageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop"
+        android:background="@drawable/circle_background"
+        android:clipToOutline="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(사진을 클릭하면 변경할 수 있어요)"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_gravity="center"
+        android:layout_marginTop="4dp"/>
+
+    <!-- 닉네임 변경 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="닉네임 변경"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"/>
+
+    <!-- 닉네임 입력 + 중복 확인 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/editNickname"
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="wrap_content"
+            android:hint="새 닉네임 입력"
+            android:maxLength="8"
+            android:singleLine="true"/>
+
+        <Button
+            android:id="@+id/btnCheckNickname"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="중복 확인"
+            android:textSize="12sp"
+            android:backgroundTint="#80929F"
+            android:textColor="@android:color/white"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <!-- 자기소개 변경 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="자기소개 변경"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"/>
+
+    <EditText
+        android:id="@+id/editBio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="최대 20자까지 입력 가능"
+        android:maxLength="20"/>
+
+    <!-- 버튼 영역 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="12dp">
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:text="저장"
+            android:textSize="14sp"
+            android:backgroundTint="#80929F"
+            android:textColor="@android:color/white"
+            android:layout_marginEnd="6dp"/>
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="50dp"
+            android:text="취소"
+            android:textSize="14sp"
+            android:backgroundTint="#80929F"
+            android:textColor="@android:color/white"
+            android:layout_marginStart="6dp"/>
+    </LinearLayout>
+
+</LinearLayout>

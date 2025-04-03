@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF"/> <!-- 🔹 배경색 추가 -->
+            <corners android:radius="10dp"/>
+        </shape>
+    </item>
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/yumi_icon"
+            android:tintMode="src_over"/> <!-- 🔹 색상 변형 방지 -->
+    </item>
+</layer-list>

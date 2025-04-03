@@ -1,0 +1,122 @@
+{
+  "project_info": {
+    "project_number": "676999256577",
+    "firebase_url": "https://yumi-5f5c0-default-rtdb.firebaseio.com",
+    "project_id": "yumi-5f5c0",
+    "storage_bucket": "yumi-5f5c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676999256577:android:1c9a4c39ebe8452950fe00",
+        "android_client_info": {
+          "package_name": "com.example.opggyumi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "676999256577-p8okt1c44i3q3205s3levp0ikeg44981.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvvtodeiaJs_9zH0YuqX1TvVEcyK9DTaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "676999256577-p8okt1c44i3q3205s3levp0ikeg44981.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676999256577:android:8b740ffdb2f661a750fe00",
+        "android_client_info": {
+          "package_name": "com.example.yumi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "676999256577-12hi082ov1so0v0ob0ddam1f529kn8p3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.yumi",
+            "certificate_hash": "00ea7819784ab349cd4431e408c66e132e948319"
+          }
+        },
+        {
+          "client_id": "676999256577-p8okt1c44i3q3205s3levp0ikeg44981.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvvtodeiaJs_9zH0YuqX1TvVEcyK9DTaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "676999256577-p8okt1c44i3q3205s3levp0ikeg44981.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:676999256577:android:85f70daa579ee09b50fe00",
+        "android_client_info": {
+          "package_name": "com.example.yumi2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "676999256577-0v0dnkggafghn0vnuu1hm4rqs5tpfbet.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.yumi2",
+            "certificate_hash": "2c693f9fc0218e9086dddebd77b9efdb82c84f54"
+          }
+        },
+        {
+          "client_id": "676999256577-p9ebfl6hh3sdhpknc0l8v0e3l3e2ug1u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.yumi2",
+            "certificate_hash": "ad19cede6295d5f63c2ce03b023f830d4928185a"
+          }
+        },
+        {
+          "client_id": "676999256577-p8okt1c44i3q3205s3levp0ikeg44981.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvvtodeiaJs_9zH0YuqX1TvVEcyK9DTaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "676999256577-p8okt1c44i3q3205s3levp0ikeg44981.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

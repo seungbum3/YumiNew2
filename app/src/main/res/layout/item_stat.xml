@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_margin="4dp">
+
+    <!-- 능력치 아이콘을 위한 ImageView -->
+    <ImageView
+        android:id="@+id/statIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/yumi_icon" />
+
+    <!-- 능력치 값을 표시할 TextView -->
+    <TextView
+        android:id="@+id/statValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textSize="12sp"
+        android:textColor="#80929F"
+        android:gravity="center"/>
+</LinearLayout>
