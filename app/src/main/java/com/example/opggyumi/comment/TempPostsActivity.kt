@@ -19,7 +19,6 @@ class TempPostsActivity : AppCompatActivity() {
         super.onResume()
         loadTempPosts()
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_temp_posts)

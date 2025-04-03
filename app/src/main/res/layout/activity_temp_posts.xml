@@ -15,5 +15,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 <!--    111111111111-->
+<!--    안녕친구들-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
