@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/champion_select_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000"
+    tools:context=".BanPickChampionChoice">
+
+    <!-- 실제 챔피언 선택 영역 -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/champion_select_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000">
+
+        <!-- 1) 남은 시간 표시 (20초) -->
+        <TextView
+            android:id="@+id/BanPickTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20초"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginTop="100dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 2) 닫기(X) 버튼 -->
+        <ImageButton
+            android:id="@+id/btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_delete"
+            android:background="@android:color/transparent"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintTop_toTopOf="@+id/BanPickTime"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 3) 역할 버튼(탑/정글/미드/원딜/서폿) -->
+        <LinearLayout
+            android:id="@+id/role_buttons_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@+id/BanPickTime"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <Button
+                android:id="@+id/btn_top"
+                android:layout_width="60dp"
+                android:layout_height="50dp"
+                android:text="탑"
+                android:backgroundTint="#6C6C6C"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btn_jungle"
+                android:layout_width="75dp"
+                android:layout_height="50dp"
+                android:text="정글"
+                android:layout_marginStart="8dp"
+                android:backgroundTint="#6C6C6C"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btn_mid"
+                android:layout_width="75dp"
+                android:layout_height="50dp"
+                android:text="미드"
+                android:layout_marginStart="8dp"
+                android:backgroundTint="#6C6C6C"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btn_adc"
+                android:layout_width="75dp"
+                android:layout_height="50dp"
+                android:text="원딜"
+                android:layout_marginStart="8dp"
+                android:backgroundTint="#6C6C6C"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btn_support"
+                android:layout_width="75dp"
+                android:layout_height="50dp"
+                android:text="서폿"
+                android:layout_marginStart="8dp"
+                android:backgroundTint="#6C6C6C"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
+        <!-- 4) 챔피언 검색 바 -->
+        <EditText
+            android:id="@+id/et_champion_search"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="챔피언 이름 검색"
+            android:textColorHint="#80FFFFFF"
+            android:textColor="#FFFFFF"
+            android:padding="8dp"
+            android:backgroundTint="#000000"
+            android:layout_margin="16dp"
+            app:layout_constraintTop_toBottomOf="@+id/role_buttons_container"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- 5) 챔피언 목록 (높이 고정 500dp) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_champion_list"
+            android:layout_width="0dp"
+            android:layout_height="500dp"
+            android:clipToPadding="false"
+            android:overScrollMode="always"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/et_champion_search"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/btn_confirm" />
+
+        <!-- 6) 챔피언 선택 버튼 -->
+        <Button
+            android:id="@+id/btn_confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="챔피언 선택"
+            android:backgroundTint="#6C6C6C"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="30dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

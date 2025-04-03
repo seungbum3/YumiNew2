@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/playerItemRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="6dp"
+    android:gravity="center_vertical">
+
+    <!-- 챔피언 아이콘 -->
+    <ImageView
+        android:id="@+id/ivChampionIcon"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/error_image" />
+
+    <!-- 스펠 2개 -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp">
+
+        <ImageView
+            android:id="@+id/ivSpell1"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/ivSpell2"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:scaleType="centerCrop" />
+    </LinearLayout>
+
+    <!-- 소환사 이름 & KDA -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_marginStart="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvSummonerName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SummonerName"
+            android:textSize="11sp"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/tvKda"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="KDA 0/0/0"
+            android:textSize="11sp"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
+
+    <!-- 아이템 6개 -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp">
+
+        <ImageView
+            android:id="@+id/ivItem0"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="2dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/item_error" />
+
+        <ImageView
+            android:id="@+id/ivItem1"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="2dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/item_error" />
+
+        <ImageView
+            android:id="@+id/ivItem2"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="2dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/item_error" />
+
+        <ImageView
+            android:id="@+id/ivItem3"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="2dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/item_error" />
+
+        <ImageView
+            android:id="@+id/ivItem4"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="2dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/item_error" />
+
+        <ImageView
+            android:id="@+id/ivItem5"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/item_error" />
+    </LinearLayout>
+
+    <!-- CS / 골드 -->
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_marginStart="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvCs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CS 0 (0.0)"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/tvGold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="골드 0"
+            android:textSize="10sp" />
+    </LinearLayout>
+</LinearLayout>

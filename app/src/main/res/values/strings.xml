@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">yumi2</string>
+    <string name="riot_api_key">RGAPI-f7a564a9-8329-4cd8-a367-5f050391b449</string> <!-- 🔥 여기에 API 키 입력 -->
+    <string name="default_web_client_id">676999256577-p8okt1c44i3q3205s3levp0ikeg44981.apps.googleusercontent.com</string>
+</resources>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_background"
+    tools:context=".MainpageActivity">
+
+    <ImageView
+        android:id="@+id/appLogo"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/rouned_image"
+        android:clipToOutline="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/NameSearchBtn" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/NameSearchBtn"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@drawable/search_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/appLogo"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginEnd="40dp">
+
+        <!-- 닉네임 찾기 아이콘 -->
+        <ImageView
+            android:id="@+id/Search_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_icon"
+            android:layout_marginTop="1dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginStart="170dp"/>
+
+        <!-- 닉네임 검색하기 -->
+        <Button
+            android:id="@+id/NameSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="-100dp"
+            android:background="@android:color/transparent"
+            android:hint="닉네임 + #태그 검색"
+            android:paddingTop="5dp"
+            android:textColor="#757575"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 공지사항 확인 버튼 -->
+    <android.widget.Button
+        android:id="@+id/notice"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="롤 패치노트(15.2버전)"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:background="#535353"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/NameSearchBtn"
+        android:layout_marginTop="25dp"
+        android:layout_marginStart="70dp"
+        android:layout_marginEnd="70dp"
+        android:layout_marginBottom="10dp" />
+
+    <android.widget.Button
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/notice_button"
+        app:layout_constraintStart_toEndOf="@+id/notice"
+        app:layout_constraintTop_toBottomOf="@+id/NameSearchBtn"
+        android:layout_marginTop="22dp"
+        android:layout_marginStart="-55dp"/>
+
+    <android.widget.Button
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@drawable/notice_icon"
+        app:layout_constraintEnd_toStartOf="@+id/notice"
+        app:layout_constraintTop_toBottomOf="@+id/NameSearchBtn"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="-15dp"/>
+
+
+    <!-- 공지사항 확인 버튼 -->
+    <android.widget.Button
+        android:id="@+id/Champion_rotation"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="이번주 로테이션 챔피언 ( 2025-2-10 ~ 2025-02-16 )"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:background="#535353"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/notice"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="10dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/championRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/Champion_rotation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:scrollbars="horizontal"/>
+
+    <!-- 챔피언 티어리스트 표 -->
+    <android.widget.Button
+        android:id="@+id/Champion_tier"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="챔피언 티어리스트 표"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:background="#535353"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/championRecyclerView"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="10dp" />
+
+    <!-- 하단 네비게이션 바 -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#B1C1CE"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/bottom_nav_item_color"
+        app:itemBackground="@android:color/transparent"
+        app:itemRippleColor="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

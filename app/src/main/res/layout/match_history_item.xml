@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/matchItemRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="5dp"
+    android:background="#C8E8F4"
+    android:padding="4dp">
+
+    <!-- (1) 챔피언 아이콘 -->
+<ImageView
+android:id="@+id/ivChampionIcon"
+android:layout_width="40dp"
+android:layout_height="40dp"
+android:scaleType="centerCrop"
+android:layout_margin="4dp"
+    android:layout_marginTop="10dp"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintTop_toTopOf="parent"
+android:src="@drawable/error_image" />
+
+    <!-- (2) 승리/패배 상태 -->
+<TextView
+android:id="@+id/tvMatchResult"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="승리"
+android:layout_marginTop="8dp"
+android:textSize="12sp"
+android:textStyle="bold"
+android:layout_marginEnd="3dp"
+android:textColor="@android:color/holo_blue_dark"
+app:layout_constraintStart_toEndOf="@id/ivChampionIcon"
+app:layout_constraintTop_toTopOf="parent"
+app:layout_constraintEnd_toStartOf="@+id/tvKDADetail" />
+
+    <!-- (3) 큐 타입 (ex. 솔로랭크) -->
+<TextView
+android:id="@+id/tvQueueType"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="솔로랭크"
+android:textSize="10sp"
+android:textColor="@android:color/black"
+android:layout_marginStart="7dp"
+app:layout_constraintStart_toEndOf="@id/ivChampionIcon"
+app:layout_constraintTop_toBottomOf="@id/tvMatchResult" />
+
+    <!-- (4) 몇 시간/분 전 -->
+<TextView
+android:id="@+id/tvTimeAgo"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="1시간 전"
+android:textSize="8sp"
+android:textColor="@android:color/black"
+android:layout_marginEnd="1dp"
+android:layout_marginBottom="4dp"
+app:layout_constraintTop_toBottomOf="@id/tvQueueType"
+app:layout_constraintStart_toEndOf="@id/ivChampionIcon"
+app:layout_constraintEnd_toStartOf="@+id/tvKDADetail" />
+
+    <!-- (5) 평점 (KDA) -->
+<TextView
+android:id="@+id/tvKDA"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:minHeight="24dp"
+android:maxHeight="24dp"
+android:text="6.00"
+android:textSize="10sp"
+android:textStyle="bold"
+android:textColor="@android:color/holo_red_dark"
+android:layout_marginTop="10dp"
+android:layout_marginStart="26dp"
+app:layout_constraintStart_toEndOf="@id/tvMatchResult"
+app:layout_constraintTop_toTopOf="@id/tvMatchResult" />
+
+    <!-- (5-1) 상세 KDA (예: 5/2/7) -->
+<TextView
+android:id="@+id/tvKDADetail"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="5/2/7"
+android:textSize="8sp"
+android:layout_marginStart="6dp"
+android:layout_marginTop="4dp"
+android:textColor="@android:color/black"
+app:layout_constraintStart_toEndOf="@id/tvQueueType"
+app:layout_constraintTop_toBottomOf="@id/tvKDA" />
+
+    <!-- (6) 소환사 주문 (스펠) -->
+<LinearLayout
+android:id="@+id/summonerSpellContainer"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:layout_marginStart="22dp"
+android:orientation="vertical"
+app:layout_constraintStart_toEndOf="@id/tvKDA"
+app:layout_constraintTop_toTopOf="@id/tvKDA"
+app:layout_constraintBottom_toBottomOf="@id/tvKDADetail">
+
+<ImageView
+    android:id="@+id/ivSummonerSpell1"
+    android:layout_width="20dp"
+    android:layout_height="20dp"
+    android:scaleType="centerCrop"
+    android:src="@drawable/error_image" />
+
+<ImageView
+    android:id="@+id/ivSummonerSpell2"
+    android:layout_width="20dp"
+    android:layout_height="20dp"
+    android:scaleType="centerCrop"
+    android:layout_marginTop="2dp"
+    android:src="@drawable/error_image" />
+</LinearLayout>
+
+    <!-- (7) 아이템 목록 (6칸) -->
+<LinearLayout
+android:id="@+id/itemContainer"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:orientation="vertical"
+android:layout_marginStart="8dp"
+app:layout_constraintStart_toEndOf="@id/summonerSpellContainer"
+app:layout_constraintTop_toTopOf="parent"
+app:layout_constraintEnd_toStartOf="@+id/tvCS">
+
+<!-- 첫 번째 행: ivItem0, ivItem1, ivItem2 -->
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/ivItem0"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="2dp"
+        android:src="@drawable/item_error" />
+
+    <ImageView
+        android:id="@+id/ivItem1"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="2dp"
+        android:src="@drawable/item_error" />
+
+    <ImageView
+        android:id="@+id/ivItem2"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="2dp"
+        android:src="@drawable/item_error" />
+</LinearLayout>
+
+<!-- 두 번째 행: ivItem3, ivItem4, ivItem5 -->
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginTop="2dp">
+
+    <ImageView
+        android:id="@+id/ivItem3"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="2dp"
+        android:src="@drawable/item_error" />
+
+    <ImageView
+        android:id="@+id/ivItem4"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="2dp"
+        android:src="@drawable/item_error" />
+
+    <ImageView
+        android:id="@+id/ivItem5"
+        android:layout_width="23dp"
+        android:layout_height="23dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="2dp"
+        android:src="@drawable/item_error" />
+</LinearLayout>
+</LinearLayout>
+
+    <!-- (8) 추가 정보 (CS, 골드, 게임 시간) -->
+<TextView
+android:id="@+id/tvCS"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="CS 184 (7.5)"
+android:textSize="8sp"
+android:textColor="@android:color/black"
+android:layout_marginTop="8dp"
+android:layout_marginStart="8dp"
+app:layout_constraintStart_toEndOf="@+id/itemContainer"
+app:layout_constraintEnd_toEndOf="parent"
+app:layout_constraintTop_toTopOf="parent" />
+
+<TextView
+android:id="@+id/tvGold"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="골드 10,410"
+android:textSize="7sp"
+android:textColor="@android:color/black"
+app:layout_constraintTop_toBottomOf="@id/tvCS"
+app:layout_constraintStart_toEndOf="@+id/itemContainer"
+app:layout_constraintEnd_toEndOf="parent" />
+
+<TextView
+android:id="@+id/tvGameTime"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="24분 34초"
+android:textSize="6sp"
+android:textColor="@android:color/black"
+app:layout_constraintTop_toBottomOf="@id/tvGold"
+app:layout_constraintStart_toEndOf="@+id/itemContainer"
+app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- (9) downBtn: 펼쳐보기 버튼 -->
+<ImageView
+android:id="@+id/downBtn"
+android:layout_width="15dp"
+android:layout_height="10dp"
+android:scaleType="centerCrop"
+android:layout_marginTop="5dp"
+app:layout_constraintTop_toBottomOf="@id/tvGameTime"
+app:layout_constraintStart_toEndOf="@+id/itemContainer"
+app:layout_constraintEnd_toEndOf="parent"
+android:src="@drawable/down_btn" />
+
+    <!-- (10) Expanded Layout: 레드팀/블루팀 상세 (기본 GONE) -->
+<LinearLayout
+android:id="@+id/expandedLayout"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="vertical"
+android:visibility="gone"
+android:layout_marginTop="4dp"
+app:layout_constraintTop_toBottomOf="@id/downBtn"
+app:layout_constraintStart_toStartOf="parent"
+app:layout_constraintEnd_toEndOf="parent"
+android:padding="8dp">
+
+<!-- 레드팀 헤더 -->
+<TextView
+    android:id="@+id/tvRedTeamHeader"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="승리 (레드팀) 32 / 13 / 38"
+    android:textSize="12sp"
+    android:textColor="@android:color/black"
+    android:textStyle="bold"
+    android:layout_marginBottom="4dp" />
+
+<!-- 레드팀 플레이어 목록 (동적으로 addView할 예정) -->
+<LinearLayout
+    android:id="@+id/redTeamContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" />
+
+<!-- 블루팀 헤더 -->
+<TextView
+    android:id="@+id/tvBlueTeamHeader"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="패배 (블루팀) 13 / 32 / 38"
+    android:textSize="12sp"
+    android:textColor="@android:color/black"
+    android:textStyle="bold"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="4dp" />
+
+<!-- 블루팀 플레이어 목록 (동적으로 addView할 예정) -->
+<LinearLayout
+    android:id="@+id/blueTeamContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" />
+
+</LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

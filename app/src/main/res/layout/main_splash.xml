@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="#000000"
+    android:orientation="horizontal">
+
+    <!-- 스플래시 아이콘 -->
+    <ImageView
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:background="@drawable/rouned_image"
+        android:layout_marginBottom="100dp"
+        android:clipToOutline="true" />
+
+    <!-- 앱 이름 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginBottom="100dp"
+        android:text="Yumi.gg"
+        android:textSize="25sp"
+        android:textColor="#FFFFFF" />
+</LinearLayout>

@@ -1,0 +1,30 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_margin="4dp">
+
+    <!-- ✅ 상단 6칸 전용으로 크기 맞춤 -->
+    <ImageView
+        android:id="@+id/itemImage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"/>
+
+    <TextView
+        android:id="@+id/itemName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="28dp"
+        android:textSize="12sp"
+        android:textColor="#E7EBED"
+        android:background="#80929F"
+        android:gravity="center"
+        android:padding="4dp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"/>
+</LinearLayout>

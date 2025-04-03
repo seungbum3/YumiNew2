@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_background"
+    tools:context=".NameSearchActivity">
+
+    <Button
+        android:id="@+id/PageBack"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/pageback_vector"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <ImageView
+        android:id="@+id/appLogo"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="90dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/rouned_image"
+        android:clipToOutline="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/NameSearchBtn" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/NameSearchBtn"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@drawable/search_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/appLogo"
+        android:layout_marginTop="90dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginEnd="10dp">
+
+        <!-- 닉네임 찾기 아이콘 -->
+        <ImageView
+            android:id="@+id/Search_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/search_icon"
+            android:backgroundTint="#757575"
+            android:layout_marginTop="1.5dp"
+            app:layout_constraintStart_toEndOf="@+id/NameSearch"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginStart="5dp"/>
+
+        <!-- 닉네임 검색하기 -->
+        <EditText
+            android:id="@+id/NameSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:hint="닉네임 + #태그 검색"
+            android:textSize="16sp"
+            android:textColor="#757575"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:background="@android:color/transparent"
+            android:paddingStart="12dp"/>
+
+        <Button
+            android:id="@+id/search"
+            android:layout_width="78dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="10dp"
+            android:text="검색"
+            android:textSize="16sp"
+            android:paddingBottom="10dp"
+            android:textColor="#000000"
+            android:backgroundTint="#606C6C6C"
+            app:cornerRadius="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- 오류 메시지 표시용 TextView -->
+    <TextView
+        android:id="@+id/errorText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="#FF0000"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/NameSearchBtn" />
+
+    <!-- 최근 검색 / 전체 삭제 레이블 & 버튼 -->
+    <TextView
+        android:id="@+id/recentSearchTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:text="최근 검색"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/errorText" />
+
+    <Button
+        android:id="@+id/clearAllButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="전체 삭제"
+        android:textSize="16sp"
+        android:background="@android:color/transparent"
+        android:textColor="@android:color/black"
+        app:layout_constraintBaseline_toBaselineOf="@+id/recentSearchTitle"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 최근 검색 목록 표시용 RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recentSearchRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recentSearchTitle" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
