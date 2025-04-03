@@ -28,7 +28,7 @@ class FavoritesAdapter(
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_favorite, parent, false)
         return FavoriteViewHolder(view)
     }
-
+// 안녕?dd
     override fun onBindViewHolder(holder: FavoriteViewHolder, position: Int) {
         val favorite = favoriteList[position]
         val summonerName = favorite["summonerName"] ?: "알 수 없음"
