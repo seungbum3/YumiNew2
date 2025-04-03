@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 기존 색상 유지 + 티어 색상 추가 -->
+    <color name="tier_iron">#51484F</color>
+    <color name="tier_bronze">#8C6239</color>
+    <color name="tier_silver">#C0C0C0</color>
+    <color name="tier_gold">#FFD700</color>
+    <color name="tier_platinum">#4DD0E1</color>
+    <color name="tier_emerald">#00A86B</color>
+    <color name="tier_diamond">#1E90FF</color>
+    <color name="tier_master">#AA00FF</color>
+    <color name="tier_grandmaster">#FF4500</color>
+    <color name="tier_challenger">#FFD700</color>
+    <color name="black">#000000</color>
+
+</resources>

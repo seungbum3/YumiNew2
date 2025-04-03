@@ -1,0 +1,33 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="100dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="4dp"
+
+    android:background="@drawable/item_border"> <!-- 테두리 추가 -->
+
+    <!-- 아이템 이미지 -->
+    <ImageView
+        android:id="@+id/itemImage"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"/>
+
+    <!-- 아이템 이름 -->
+    <TextView
+        android:id="@+id/itemName"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:textSize="12sp"
+        android:textColor="#E7EBED"
+        android:background="#80929F"
+        android:gravity="center"
+        android:padding="4dp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"/>
+</LinearLayout>

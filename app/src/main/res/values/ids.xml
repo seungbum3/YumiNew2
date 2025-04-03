@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="titleText" type="id" />
+    <item name="contentText" type="id" />
+    <item name="categoryTitle" type="id" />
+    <item name="NameSearchBtn" type="id" />
+    <item name="messageText" type="id" />
+    <item name="rankCard" type="id" />
+    <item name="rankType" type="id" />
+    <item name="rankTier" type="id" />
+    <item name="rankLP" type="id" />
+    <item name="rankWinLoss" type="id" />
+    <item name="rankTierImage" type="id" />
+    <item name="rankCard1" type="id" />
+    <item name="rankType1" type="id" />
+    <item name="rankTier1" type="id" />
+    <item name="rankLP1" type="id" />
+    <item name="rankWinLoss1" type="id" />
+    <item name="rankTierImage1" type="id" />
+</resources>
