@@ -33,15 +33,17 @@ data class Post(
     val hashtags: List<String> = emptyList()  // 해시태그 필드 추가
 )
 
-@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     private lateinit var freeBoardAdapter: FreeBoardAdapter
     private lateinit var rankBoardAdapter: RankBoardAdapter
     private lateinit var normalBoardAdapter: NormalBoardAdapter
     private lateinit var championBoardAdapter: ChampionBoardAdapter
-    private lateinit var categoryTitle: TextView
-    private lateinit var searchEditText: EditText // 🔍 검색창 추가
+    private lateinit var searchEditText: EditText
     private lateinit var currentCategory: String
+    private lateinit var latestButton: Button
+    private lateinit var popularButton: Button
+    private var isPopularMode = false
+
     private val freeBoardList = mutableListOf<Post>()
     private val rankBoardList = mutableListOf<Post>()
     private val normalBoardList = mutableListOf<Post>()
@@ -52,9 +54,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        categoryTitle = findViewById(R.id.categoryTitle)
-        searchEditText = findViewById(R.id.search_edit_text) // 🔍 검색창 초기화
+
+        searchEditText = findViewById(R.id.search_edit_text)
+        latestButton = findViewById(R.id.btn_latest)
+        popularButton = findViewById(R.id.btn_popular)
         currentCategory = "자유"
+
         freeBoardAdapter = FreeBoardAdapter(this, freeBoardList)
         rankBoardAdapter = RankBoardAdapter(this, rankBoardList)
         normalBoardAdapter = NormalBoardAdapter(this, normalBoardList)
@@ -64,43 +69,30 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = freeBoardAdapter
 
-        val textFree = findViewById<TextView>(R.id.text_free)
-        val textRank = findViewById<TextView>(R.id.text_rank)
-        val textNormal = findViewById<TextView>(R.id.text_normal)
-        val textChampion = findViewById<TextView>(R.id.text_champion)
-        textFree.setOnClickListener { changeCategory("자유") }
-        textRank.setOnClickListener { changeCategory("랭크") }
-        textNormal.setOnClickListener { changeCategory("일반") }
-        textChampion.setOnClickListener { changeCategory("챔피언 빌드") }
-        // 기존 writeButton 변수는 다음과 같이 정의되어 있다고 가정합니다.
-        val writeButton = findViewById<Button>(R.id.button3)
-        // + 버튼 클릭 시 다이얼로그를 띄워 옵션을 선택하도록 처리합니다.
-        writeButton.setOnClickListener {
-            // "새게시글"과 "임시저장" 옵션을 배열에 담습니다.
+        findViewById<TextView>(R.id.text_free).setOnClickListener { changeCategory("자유") }
+        findViewById<TextView>(R.id.text_rank).setOnClickListener { changeCategory("랭크") }
+        findViewById<TextView>(R.id.text_normal).setOnClickListener { changeCategory("일반") }
+        findViewById<TextView>(R.id.text_champion).setOnClickListener { changeCategory("챔피언 빌드") }
+
+        findViewById<Button>(R.id.button3).setOnClickListener {
             val options = arrayOf("새게시글", "임시저장")
-            // AlertDialog를 생성하여 옵션을 보여줍니다.
             AlertDialog.Builder(this)
                 .setTitle("")
-                .setItems(options) { dialog, which ->
+                .setItems(options) { _, which ->
                     when (which) {
                         0 -> {
-                            // 새게시글 선택: 기존의 WritingActivity를 실행합니다.
                             val intent = Intent(this, WritingActivity::class.java)
-                            intent.putExtra("category", currentCategory)  // 현재 카테고리 전달
+                            intent.putExtra("category", currentCategory)
                             startActivityForResult(intent, 1)
                         }
-                        1 -> {
-                            // 임시저장 선택: 임시저장된 게시글 목록을 확인할 TempPostsActivity를 실행합니다.
-                            val intent = Intent(this, TempPostsActivity::class.java)
-                            startActivity(intent)
-                        }
+                        1 -> startActivity(Intent(this, TempPostsActivity::class.java))
                     }
                 }
                 .show()
         }
+
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigationView.selectedItemId = R.id.category4
-
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.category1 -> {
@@ -119,11 +111,19 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 else -> false
-
             }
         }
-        loadPosts()
-        // 🔍 검색 기능 추가
+
+        latestButton.setOnClickListener {
+            isPopularMode = false
+            loadPosts()
+        }
+
+        popularButton.setOnClickListener {
+            isPopularMode = true
+            loadPosts()
+        }
+
         searchEditText.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 searchPosts(s.toString())
@@ -131,12 +131,13 @@ class MainActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
+
+        loadPosts()
     }
 
-    // MainActivity가 포그라운드로 돌아올 때 최신 데이터를 불러옵니다.
     override fun onResume() {
         super.onResume()
-        loadPosts()  // Firestore에서 최신 게시글 데이터를 불러와 조회수 업데이트 반영
+        loadPosts()
     }
 
     private fun loadPosts() {
@@ -161,44 +162,18 @@ class MainActivity : AppCompatActivity() {
                         val nickname = document.getString("nickname") ?: ""
                         postList.add(Post(title, content, category, timestamp, views, postId, imageUrl, uid, nickname))
                     }
-                    postList.sortByDescending { it.timestamp }
+
+                    // 정렬 기준 적용
+                    if (isPopularMode) {
+                        postList.sortByDescending { it.views }
+                    } else {
+                        postList.sortByDescending { it.timestamp }
+                    }
+
                     updateRecyclerView(postList)
                 }
             }
     }
-    private fun searchPosts(query: String) {
-        if (query.isEmpty()) {
-            loadPosts()
-            return
-        }
-        firestore.collection("posts")
-            .whereEqualTo("category", currentCategory)
-            .get()
-            .addOnSuccessListener { result ->
-                val filteredList = mutableListOf<Post>()
-                for (document in result) {
-                    val title = document.getString("title") ?: ""
-                    val nickname = document.getString("nickname") ?: ""
-                    val content = document.getString("content") ?: ""
-                    if (title.contains(query, ignoreCase = true) ||
-                        nickname.contains(query, ignoreCase = true) ||
-                        content.contains(query, ignoreCase = true)) {
-                        val timestamp = document.getLong("timestamp") ?: 0L
-                        val views = document.getLong("views")?.toInt() ?: 0
-                        val postId = document.id
-                        val imageUrl = document.getString("imageUrl") ?: ""
-                        val uid = document.getString("uid") ?: ""
-                        filteredList.add(Post(title, content, currentCategory, timestamp, views, postId, imageUrl, uid, nickname))
-                    }
-                }
-                updateRecyclerView(filteredList)
-            }
-            .addOnFailureListener { exception ->
-                Log.e("FirestoreError", "검색 실패: ${exception.message}")
-            }
-    }
-
-
 
     private fun updateRecyclerView(posts: List<Post>) {
         when (currentCategory) {
@@ -229,23 +204,64 @@ class MainActivity : AppCompatActivity() {
         currentCategory = category
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         when (category) {
-            "자유" -> {
-                recyclerView.adapter = freeBoardAdapter
-                categoryTitle.text = "자유 게시판"
-            }
-            "랭크" -> {
-                recyclerView.adapter = rankBoardAdapter
-                categoryTitle.text = "랭크 게시판"
-            }
-            "일반" -> {
-                recyclerView.adapter = normalBoardAdapter
-                categoryTitle.text = "일반 게시판"
-            }
-            "챔피언 빌드" -> {
-                recyclerView.adapter = championBoardAdapter
-                categoryTitle.text = "챔피언 빌드 게시판"
-            }
+            "자유" -> recyclerView.adapter = freeBoardAdapter
+            "랭크" -> recyclerView.adapter = rankBoardAdapter
+            "일반" -> recyclerView.adapter = normalBoardAdapter
+            "챔피언 빌드" -> recyclerView.adapter = championBoardAdapter
         }
         loadPosts()
     }
+
+    private fun searchPosts(query: String) {
+        if (query.isEmpty()) {
+            loadPosts()
+            return
+        }
+        firestore.collection("posts")
+            .get()
+            .addOnSuccessListener { result ->
+                val filteredList = mutableListOf<Post>()
+                for (document in result.documents) {
+                    val title = document.getString("title") ?: ""
+                    val nickname = document.getString("nickname") ?: ""
+                    val content = document.getString("content") ?: ""
+                    // 해시태그 필드를 가져와서 리스트로 변환 (존재하지 않으면 빈 리스트)
+                    val hashtagsList = document.get("hashtags") as? List<String> ?: emptyList()
+
+                    // 검색어가 제목, 닉네임, 내용 또는 해시태그 목록 중 하나에 포함되어 있는지 확인
+                    if (title.contains(query, ignoreCase = true) ||
+                        nickname.contains(query, ignoreCase = true) ||
+                        content.contains(query, ignoreCase = true) ||
+                        hashtagsList.any { it.contains(query, ignoreCase = true) }) {
+
+                        val timestamp = document.getLong("timestamp") ?: 0L
+                        val views = document.getLong("views")?.toInt() ?: 0
+                        val postId = document.id
+                        val imageUrl = document.getString("imageUrl") ?: ""
+                        val uid = document.getString("uid") ?: ""
+                        val category = document.getString("category") ?: ""
+
+                        val post = Post(
+                            title = title,
+                            content = content,
+                            category = category,
+                            timestamp = timestamp,
+                            views = views,
+                            postId = postId,
+                            imageUrl = imageUrl,
+                            uid = uid,
+                            nickname = nickname
+                        )
+                        filteredList.add(post)
+                    }
+                }
+                filteredList.sortByDescending { it.timestamp }
+                updateRecyclerView(filteredList)
+            }
+            .addOnFailureListener { exception ->
+                Log.e("FirestoreError", "검색 실패: ${exception.message}")
+            }
+    }
+
+
 }

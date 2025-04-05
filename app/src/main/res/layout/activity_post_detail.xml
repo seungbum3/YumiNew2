@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="@drawable/rounded_scrollview"
     tools:context=".comment.PostDetailFragment">
 
     <!-- ScrollView: 스크롤 영역 (게시글 상세 내용, 댓글 목록 등) -->

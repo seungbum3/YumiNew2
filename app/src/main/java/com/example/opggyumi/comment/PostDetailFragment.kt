@@ -134,8 +134,10 @@ class PostDetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // 기존 초기화 코드 (게시글, 댓글 로드 등)
         if (postId.isNotEmpty()) {
-            // 게시글 조회 및 조회수 증가
+            // 게시글 조회 및 조회수 증가 코드 등...
             val postRef = firestore.collection("posts").document(postId)
             postRef.update("views", FieldValue.increment(1))
                 .addOnSuccessListener {
@@ -153,27 +155,31 @@ class PostDetailFragment : Fragment() {
             Toast.makeText(context, "Invalid post ID", Toast.LENGTH_SHORT).show()
         }
 
+        // 뒤로가기 버튼 처리
         val backButton: ImageView = view.findViewById(R.id.backButton)
         backButton.setOnClickListener { requireActivity().onBackPressed() }
 
-        // 댓글 영역 토글 (필요 시)
-        val toggleCommentText: TextView = view.findViewById(R.id.toggleCommentText)
+        // 댓글 영역 토글 관련 코드 제거하고, 댓글 영역은 항상 보이도록 설정
         val commentInputLayout: View = view.findViewById(R.id.commentInputContainer)
-        val commentRecyclerViewView: View = view.findViewById(R.id.commentRecyclerView)
-        commentInputLayout.visibility = View.GONE
-        commentRecyclerViewView.visibility = View.GONE
-        var isCommentVisible = false
-        toggleCommentText.setOnClickListener {
-            isCommentVisible = !isCommentVisible
-            if (isCommentVisible) {
-                commentInputLayout.visibility = View.VISIBLE
-                commentRecyclerViewView.visibility = View.VISIBLE
-            } else {
-                commentInputLayout.visibility = View.GONE
-                commentRecyclerViewView.visibility = View.GONE
+        val commentRecyclerView = view.findViewById<RecyclerView>(R.id.commentRecyclerView)
+        commentInputLayout.visibility = View.VISIBLE
+        commentRecyclerView.visibility = View.VISIBLE
+
+        // 댓글 입력란에 포커스가 생길 때, 댓글 RecyclerView의 마지막 항목으로 자동 스크롤
+        val commentEditText = view.findViewById<EditText>(R.id.commentEditText)
+        commentEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                commentRecyclerView.post {
+                    if (commentRecyclerView.adapter != null && commentRecyclerView.adapter!!.itemCount > 0) {
+                        commentRecyclerView.scrollToPosition(commentRecyclerView.adapter!!.itemCount - 1)
+                    }
+                }
             }
         }
+
+        // 나머지 댓글 토글(필요 시) 관련 코드는 삭제하거나 주석 처리합니다.
     }
+
 
     private fun loadPostDetails() {
         val postRef = firestore.collection("posts").document(postId)
