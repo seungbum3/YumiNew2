@@ -46,6 +46,7 @@ class WritingActivity : AppCompatActivity() {
             null
         }
 
+        // 수정 모드일 경우 기존 임시 게시글의 category를 그대로 사용하고, 그렇지 않으면 intent로 받은 category 사용
         currentCategory = intent.getStringExtra("category") ?: "자유"
 
         val titleEditText = findViewById<EditText>(R.id.editText)
@@ -60,9 +61,6 @@ class WritingActivity : AppCompatActivity() {
             titleEditText.setText(it.title)
             contentEditText.setText(it.content)
             // 이미지나 해시태그 등 다른 필드도 필요한 경우 추가로 설정합니다.
-            // 예: if (!it.imageUrl.isNullOrEmpty()) {
-            //         selectedImageView.setImageURI(Uri.parse(it.imageUrl))
-            //     }
         }
 
         // 이미지 선택
@@ -77,11 +75,23 @@ class WritingActivity : AppCompatActivity() {
             startActivityForResult(intent, 200)
         }
 
-        // "글 쓰 기" 버튼 클릭 시 Firestore에 게시글 저장
         saveButton.setOnClickListener {
-            val title = titleEditText.text.toString()
-            val content = contentEditText.text.toString()
+            val title = titleEditText.text.toString().trim()
+            val content = contentEditText.text.toString().trim()
 
+            // 제목과 내용 모두 입력되었는지 확인
+            if (title.isEmpty() || content.isEmpty()) {
+                Toast.makeText(this, "제목과 내용을 모두 입력해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // 제목이 10글자 이내인지 체크
+            if (title.length > 10) {
+                Toast.makeText(this, "제목은 10글자 이내여야 합니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // 이미지가 선택된 경우 이미지 업로드 후 저장, 아니면 바로 저장
             if (imageUri != null) {
                 uploadImageToFirebase(imageUri!!) { imageUrl ->
                     savePostToFirestore(title, content, imageUrl)
@@ -90,6 +100,7 @@ class WritingActivity : AppCompatActivity() {
                 savePostToFirestore(title, content, null)
             }
         }
+
 
         // "임시저장" 버튼 클릭 시 현재 작성 중인 글을 SharedPreferences에 임시 저장
         tempSaveButton.setOnClickListener {
@@ -109,7 +120,8 @@ class WritingActivity : AppCompatActivity() {
                 postId = UUID.randomUUID().toString(),
                 imageUrl = imageUri?.toString(),
                 uid = FirebaseAuth.getInstance().currentUser?.uid,
-                nickname = FirebaseAuth.getInstance().currentUser?.displayName
+                nickname = FirebaseAuth.getInstance().currentUser?.displayName,
+                hashtags = hashtagList  // 해시태그 목록 저장
             )
 
             // SharedPreferences를 이용하여 임시 저장
@@ -122,6 +134,12 @@ class WritingActivity : AppCompatActivity() {
             sharedPref.edit().putString("posts", gson.toJson(posts)).apply()
 
             Toast.makeText(this, "임시저장 완료", Toast.LENGTH_SHORT).show()
+
+            // 임시 저장 후 MainActivity로 이동
+            val intent = Intent(this, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+            finish()
         }
 
         // 뒤로 가기 버튼 처리
@@ -130,6 +148,7 @@ class WritingActivity : AppCompatActivity() {
             finish()
         }
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
@@ -142,7 +161,7 @@ class WritingActivity : AppCompatActivity() {
         }
     }
 
-    // 예시: 이미지 업로드 함수 (구현 필요)
+    // 이미지 업로드 함수
     private fun uploadImageToFirebase(uri: Uri, callback: (String) -> Unit) {
         val storageRef = FirebaseStorage.getInstance()
             .reference.child("post_images/${System.currentTimeMillis()}.jpg")
@@ -156,7 +175,7 @@ class WritingActivity : AppCompatActivity() {
         }
     }
 
-    // Firestore에 게시글을 저장하는 함수
+    // Firestore에 게시글을 저장하는 함수 (수정 모드일 때 기존 임시 게시글의 category 사용)
     private fun savePostToFirestore(title: String, content: String, imageUrl: String?) {
         val db = FirebaseFirestore.getInstance()
         val postRef = db.collection("posts").document()
@@ -171,10 +190,13 @@ class WritingActivity : AppCompatActivity() {
         val profileRef = db.collection("user_profiles").document(uid)
         profileRef.get().addOnSuccessListener { document ->
             val nickname = document.getString("nickname") ?: "닉네임 없음"
+            // 수정 모드일 경우 editingTempPost의 category를 사용하고, 그렇지 않으면 currentCategory 사용
+            val postCategory = editingTempPost?.category ?: currentCategory
+
             val postMap = hashMapOf(
                 "title" to title,
                 "content" to content,
-                "category" to currentCategory,
+                "category" to postCategory,
                 "timestamp" to System.currentTimeMillis(),
                 "views" to 0,
                 "postId" to postRef.id,
@@ -190,7 +212,7 @@ class WritingActivity : AppCompatActivity() {
                     editingTempPost?.let {
                         removeTempPostFromSharedPref(it.postId)
                     }
-                    // MainActivity로 전환하도록 인텐트 호출 (뒤로가기 스택 모두 지움)
+                    // MainActivity로 전환 (뒤로가기 스택 모두 지움)
                     val intent = Intent(this, MainActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                     startActivity(intent)

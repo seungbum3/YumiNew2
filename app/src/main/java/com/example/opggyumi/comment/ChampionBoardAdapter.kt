@@ -36,10 +36,7 @@ class ChampionBoardAdapter(private val context: Context, private val posts: List
         holder.contentTextView.text = post.content
         holder.categoryTextView.text = post.category
         holder.viewCountTextView.text = "조회수: ${post.views}"
-
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        holder.timestampTextView.text = dateFormat.format(Date(post.timestamp))
-
+        holder.timestampTextView.text = getRelativeTime(post.timestamp)
         if (!post.imageUrl.isNullOrEmpty()) {
             holder.postImageView.visibility = View.VISIBLE
             holder.postImageView.load(post.imageUrl)

@@ -29,7 +29,8 @@ data class Post(
     val postId: String,
     val imageUrl: String? = null,
     val uid: String? = null,        // 작성자 UID
-    val nickname: String? = null    // 작성자 닉네임
+    val nickname: String? = null,    // 작성자 닉네임
+    val hashtags: List<String> = emptyList()  // 해시태그 필드 추가
 )
 
 @Suppress("DEPRECATION")

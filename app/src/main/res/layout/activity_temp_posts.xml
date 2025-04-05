@@ -2,19 +2,49 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/main_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 임시 저장된 게시글 목록을 표시할 RecyclerView -->
+    <!-- 상단에 LinearLayout을 만들어 뒤로가기 버튼과 "임시저장" 텍스트를 넣음 -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 뒤로가기 버튼 -->
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_back"
+            android:contentDescription="뒤로가기 버튼" />
+
+        <!-- 임시저장 텍스트뷰 -->
+        <TextView
+            android:id="@+id/tempSaveLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="임시저장 게시글"
+            android:textSize="18sp"
+            android:textColor="#000000" />
+    </LinearLayout>
+
+    <!-- 임시 저장된 게시글 목록을 표시할 RecyclerView (배경색: 흰색) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="parent"
+        android:background="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
-<!--    111111111111-->
-<!--    안녕친구들-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

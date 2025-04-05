@@ -186,8 +186,7 @@ class PostDetailFragment : Fragment() {
                     detailPostNickname.text = document.getString("nickname") ?: "닉네임 없음"
 
                     val timestamp = document.getLong("timestamp") ?: 0L
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    detailPostTimestamp.text = dateFormat.format(Date(timestamp))
+                    detailPostTimestamp.text = getRelativeTime(timestamp)
 
                     val imageUrl = document.getString("imageUrl") ?: ""
                     if (imageUrl.isNotEmpty()) {
