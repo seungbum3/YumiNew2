@@ -99,8 +99,9 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
                 docs.forEach { doc ->
                     // 현재 사용자, 이미 친구 목록에 포함된 사용자는 제외
                     if (doc.id != uid && !friendListIDs.contains(doc.id)) {
-                        val profileUrl = doc.getString("profileImageUrl")?.takeIf { it.isNotBlank() }
-                            ?: "default" // profileImageUrl이 없으면 기본 이미지 표시
+                        val profileUrl =
+                            doc.getString("profileImageUrl")?.takeIf { it.isNotBlank() }
+                                ?: "default" // profileImageUrl이 없으면 기본 이미지 표시
                         users.add(
                             mapOf(
                                 "id" to doc.id,
@@ -127,31 +128,64 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
     override fun onSendRequest(userId: String) {
         val uid = FirebaseAuth.getInstance().uid!!
         val db = FirebaseFirestore.getInstance()
-
-        val myRequestRef = db.collection("users").document(uid)
+        val mySentRef = db.collection("users").document(uid)
             .collection("sent_requests").document(userId)
-
-        val theirRequestRef = db.collection("users").document(userId)
+        val theirReqRef = db.collection("users").document(userId)
             .collection("friend_requests").document(uid)
+        val myReqRef = db.collection("users").document(uid)
+            .collection("friend_requests").document(userId)
 
-        if (sentRequests.contains(userId)) {
-            // 이미 요청 보낸 상태 → Firestore에서 요청 취소 (양쪽 삭제)
-            db.runBatch { batch ->
-                batch.delete(myRequestRef)
-                batch.delete(theirRequestRef)
-            }.addOnSuccessListener {
-                sentRequests.remove(userId)
-                adapter.notifyDataSetChanged()
+        // 내 friend_requests 컬렉션에 상대방의 요청이 이미 있는지 확인
+        db.collection("users").document(uid)
+            .collection("friend_requests").document(userId)
+            .get().addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // 상대방이 먼저 요청 보냈다면 바로 친구 추가 처리
+                    db.runBatch { batch ->
+                        // 양쪽의 friends 컬렉션에 서로 추가
+                        batch.set(
+                            db.collection("users").document(uid)
+                                .collection("friends").document(userId),
+                            mapOf("id" to userId)
+                        )
+                        batch.set(
+                            db.collection("users").document(userId)
+                                .collection("friends").document(uid),
+                            mapOf("id" to uid)
+                        )
+                        // 내 friend_requests와 상대방의 sent_requests에서 해당 요청 삭제
+                        batch.delete(myReqRef)
+                        batch.delete(
+                            db.collection("users").document(userId)
+                                .collection("sent_requests").document(uid)
+                        )
+                    }.addOnSuccessListener {
+                        // UI 업데이트 등 추가 처리 가능
+                    }.addOnFailureListener {
+                        // 에러 처리
+                    }
+                } else {
+                    // 내 sent_requests에 이미 요청이 있는 경우 → 요청 취소 처리
+                    if (sentRequests.contains(userId)) {
+                        db.runBatch { batch ->
+                            batch.delete(mySentRef)
+                            batch.delete(theirReqRef)
+                        }.addOnSuccessListener {
+                            sentRequests.remove(userId)
+                            adapter.notifyDataSetChanged()
+                        }
+                    } else {
+                        // 아직 요청 보내지 않은 상태이면 요청 보내기
+                        db.runBatch { batch ->
+                            batch.set(mySentRef, mapOf("to" to userId, "status" to "pending"))
+                            batch.set(theirReqRef, mapOf("from" to uid, "status" to "pending"))
+                        }.addOnSuccessListener {
+                            sentRequests.add(userId)
+                            adapter.notifyDataSetChanged()
+                        }
+                    }
+                }
             }
-        } else {
-            // 요청 보내기 (양쪽 저장)
-            db.runBatch { batch ->
-                batch.set(myRequestRef, mapOf("to" to userId, "status" to "pending"))
-                batch.set(theirRequestRef, mapOf("from" to uid, "status" to "pending"))
-            }.addOnSuccessListener {
-                sentRequests.add(userId)
-                adapter.notifyDataSetChanged()
-            }
-        }
     }
 }
+

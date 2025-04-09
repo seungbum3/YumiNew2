@@ -73,7 +73,7 @@ class ChatAdapter(
                         }
                     }
             } else {
-                imageView.visibility = View.GONE
+                imageView.visibility = View.INVISIBLE
             }
         }
     }

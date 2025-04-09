@@ -24,6 +24,7 @@ class FriendsAdapter(
     private val layoutResId: Int  // 레이아웃 리소스 ID 추가
 ) : RecyclerView.Adapter<FriendsAdapter.ViewHolder>(), Filterable {
     private var filteredList = fullList.toMutableList()
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val friendProfileImage: ImageView = itemView.findViewById(R.id.friendProfileImage)
         val friendName: TextView = itemView.findViewById(R.id.friendName)
@@ -65,7 +66,8 @@ class FriendsAdapter(
         // 친구 목록에서 클릭 시 채팅방 이동
         holder.itemView.setOnClickListener {
             val context = holder.itemView.context
-            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
+            val currentUserId =
+                FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
             val friendId = friend["id"]
 
             Log.d("FriendsAdapter", "✅ friend 데이터: $friend")
@@ -93,7 +95,8 @@ class FriendsAdapter(
                 when (menuItem.itemId) {
                     R.id.menu_chat -> {
                         val context = view.context
-                        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnMenuItemClickListener true
+                        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                            ?: return@setOnMenuItemClickListener true
                         if (friendId.isEmpty()) {
                             Log.e("FriendsAdapter", "❌ 친구 ID가 없음! 채팅을 시작할 수 없습니다.")
                             return@setOnMenuItemClickListener true
@@ -108,6 +111,7 @@ class FriendsAdapter(
                         }
                         true
                     }
+
                     R.id.menu_delete -> {
                         AlertDialog.Builder(holder.itemView.context)
                             .setTitle("친구 삭제")
@@ -117,10 +121,12 @@ class FriendsAdapter(
                             .show()
                         true
                     }
+
                     R.id.menu_block -> {
                         blockFriend(friendId)
                         true
                     }
+
                     else -> false
                 }
             }
@@ -144,8 +150,9 @@ class FriendsAdapter(
             values = if (query.isNullOrEmpty()) fullList
             else fullList.filter { it["nickname"]?.lowercase()?.contains(query) == true }
         }
+
         override fun publishResults(constraint: CharSequence?, results: FilterResults) {
-            filteredList = (results.values as List<Map<String,String>>).toMutableList()
+            filteredList = (results.values as List<Map<String, String>>).toMutableList()
             notifyDataSetChanged()
         }
     }
@@ -179,7 +186,10 @@ class FriendsAdapter(
                 )
                 newChatRef.set(chatData)
                     .addOnSuccessListener {
-                        Log.d("ChatActivity", "✅ 새 채팅방 생성: ${newChatRef.id}, users: [$userA, $userB]")
+                        Log.d(
+                            "ChatActivity",
+                            "✅ 새 채팅방 생성: ${newChatRef.id}, users: [$userA, $userB]"
+                        )
                         callback(newChatRef.id)
                     }
                     .addOnFailureListener { e ->
@@ -187,6 +197,7 @@ class FriendsAdapter(
                     }
             }
     }
+
     private fun deleteFriend(friendId: String) {
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val db = FirebaseFirestore.getInstance()
@@ -210,6 +221,31 @@ class FriendsAdapter(
     }
 
     private fun blockFriend(friendId: String) {
-        Log.d("FriendsAdapter", "친구($friendId) 차단하기 선택됨")
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
+        val batch = db.batch()
+
+        // 현재 사용자의 차단 컬렉션에 차단 대상 추가
+        val blockRef = db.collection("users").document(uid)
+            .collection("blocked").document(friendId)
+        batch.set(blockRef, mapOf("id" to friendId))
+
+        // 양쪽의 친구 컬렉션에서 해당 친구 삭제
+        val myFriendRef = db.collection("users").document(uid)
+            .collection("friends").document(friendId)
+        val theirFriendRef = db.collection("users").document(friendId)
+            .collection("friends").document(uid)
+        batch.delete(myFriendRef)
+        batch.delete(theirFriendRef)
+
+        batch.commit().addOnSuccessListener {
+            Log.d("FriendsAdapter", "✅ 차단 성공: $friendId")
+            // 차단한 친구를 리스트에서 제거하여 UI 업데이트
+            fullList = fullList.filter { it["id"] != friendId }
+            filteredList = filteredList.filter { it["id"] != friendId }.toMutableList()
+            notifyDataSetChanged()
+        }.addOnFailureListener { e ->
+            Log.e("FriendsAdapter", "❌ 차단 실패: $friendId", e)
+        }
     }
 }

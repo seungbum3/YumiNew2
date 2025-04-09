@@ -54,8 +54,12 @@
             android:name=".FindFriendActivity"
             android:exported="false" />
         <activity
+            android:name=".ChampcalActivity"
+            android:exported="false" />
+        <activity
             android:name=".ItemSelectionActivity"
             android:exported="true" />
+
 
     </application>
 

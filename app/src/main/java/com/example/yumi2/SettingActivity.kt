@@ -14,12 +14,14 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
+
         val settingsContainer = findViewById<LinearLayout>(R.id.settingsContainer)
 
         val settingTexts = listOf(
             "로그아웃",
             "친구목록",
             "나만의 아이템 즐겨찾기",
+            "챔피언 능력치 계산기",
             "게시글 임시저장",
             "알림 설정",
             "테마 설정",
@@ -67,7 +69,12 @@ class SettingsActivity : AppCompatActivity() {
                         startActivity(intent)
                     }
                 }
-                // 필요한 경우 다른 항목에 대해서도 처리
+                "챔피언 능력치 계산기" -> {
+                    itemView.setOnClickListener {
+                        val intent = Intent(this, ChampcalActivity::class.java)
+                        startActivity(intent)
+                    }
+                }
             }
 
             settingsContainer.addView(itemView)

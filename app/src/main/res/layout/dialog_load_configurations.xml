@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ListView
+        android:id="@+id/listViewConfigurations"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:dividerHeight="1dp"/>
+
+    <Button
+        android:id="@+id/btnEditItemSet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="나만의 아이템 세트 만들러가기"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>
