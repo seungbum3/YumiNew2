@@ -109,6 +109,19 @@
         android:layout_marginTop="40dp"
         android:layout_marginBottom="10dp" />
 
+    <!-- 기존 Champion_rotation 아래, RecyclerView 위에 삽입 -->
+    <ImageView
+        android:id="@+id/notificationIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_notification"
+        android:contentDescription="알림"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="16dp"/>
+
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/championRecyclerView"
         android:layout_width="match_parent"

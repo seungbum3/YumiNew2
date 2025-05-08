@@ -1,5 +1,6 @@
 package com.example.opggyumi.comment
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,12 +12,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
+import com.example.opggyumi.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import coil.load
-import com.example.opggyumi.R
-import java.text.SimpleDateFormat
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.gson.Gson
+
 import java.util.*
 
 data class Reply(
@@ -59,11 +62,17 @@ class PostDetailFragment : Fragment() {
     private lateinit var commentAdapter: CommentAdapter
     private var comments = mutableListOf<Comment>()
 
-    // 삭제 버튼
-    private lateinit var deleteTextView: TextView
+    // 햄버거 메뉴 버튼 (삭제/수정 옵션)
+    private lateinit var menuButton: ImageView
 
-    // 답글 대상 댓글 (사용자가 "답글달기" 버튼을 누르면 설정됨)
+    // 답글 대상 댓글
     private var replyTarget: Comment? = null
+
+    // 수정 시 사용할 게시글 데이터
+    private var currentPost: Post? = null
+
+    // Firestore 리스너 등록 객체
+    private var postListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +80,9 @@ class PostDetailFragment : Fragment() {
         postId = arguments?.getString("postId") ?: ""
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.activity_post_detail, container, false)
 
         // 게시글 UI 초기화
@@ -90,7 +101,7 @@ class PostDetailFragment : Fragment() {
         commentRecyclerView = view.findViewById(R.id.commentRecyclerView)
         commentRecyclerView.layoutManager = LinearLayoutManager(context)
 
-        // 키보드의 Send/Done 버튼 처리
+        // 키보드 Action 처리
         commentEditText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND || actionId == EditorInfo.IME_ACTION_DONE) {
                 commentSendButton.performClick()
@@ -100,7 +111,7 @@ class PostDetailFragment : Fragment() {
             }
         }
 
-        // CommentAdapter 생성 (답글달기 클릭 시 replyTarget 설정)
+        // CommentAdapter 생성
         commentAdapter = CommentAdapter(comments) { comment ->
             replyTarget = comment
             commentEditText.hint = "답글 입력 (@${comment.nickname}에게)"
@@ -108,11 +119,11 @@ class PostDetailFragment : Fragment() {
         }
         commentRecyclerView.adapter = commentAdapter
 
-        // 삭제 버튼
-        deleteTextView = view.findViewById(R.id.deleteTextView)
-        deleteTextView.setOnClickListener { showDeleteConfirmation() }
+        // 메뉴 버튼 초기화 및 리스너 등록
+        menuButton = view.findViewById(R.id.menuButton)
+        menuButton.setOnClickListener { showMenuOptions() }
 
-        // 댓글 전송 버튼: replyTarget가 있으면 답글, 없으면 일반 댓글 전송
+        // 댓글 전송 버튼 리스너
         commentSendButton.setOnClickListener {
             val inputText = commentEditText.text.toString().trim()
             if (inputText.isEmpty()) {
@@ -135,92 +146,34 @@ class PostDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 기존 초기화 코드 (게시글, 댓글 로드 등)
         if (postId.isNotEmpty()) {
-            // 게시글 조회 및 조회수 증가 코드 등...
+            // 조회수 증가
             val postRef = firestore.collection("posts").document(postId)
             postRef.update("views", FieldValue.increment(1))
                 .addOnSuccessListener {
                     postRef.get().addOnSuccessListener { document ->
                         val views = document.getLong("views") ?: 0
-                        view.findViewById<TextView>(R.id.detail_post_view_count).text = "조회수: $views"
+                        detailPostViewCount.text = "조회수: $views"
                     }
                 }
-                .addOnFailureListener { exception ->
-                    Log.e("FirestoreError", "조회수 증가 실패: ${exception.message}")
+                .addOnFailureListener { e ->
+                    Log.e("FirestoreError", "조회수 증가 실패: ${e.message}")
                 }
-            loadPostDetails()
-            loadComments()
+            loadComments()  // 댓글 로드
         } else {
             Toast.makeText(context, "Invalid post ID", Toast.LENGTH_SHORT).show()
         }
 
-        // 뒤로가기 버튼 처리
-        val backButton: ImageView = view.findViewById(R.id.backButton)
-        backButton.setOnClickListener { requireActivity().onBackPressed() }
-
-        // 댓글 영역 토글 관련 코드 제거하고, 댓글 영역은 항상 보이도록 설정
-        val commentInputLayout: View = view.findViewById(R.id.commentInputContainer)
-        val commentRecyclerView = view.findViewById<RecyclerView>(R.id.commentRecyclerView)
-        commentInputLayout.visibility = View.VISIBLE
-        commentRecyclerView.visibility = View.VISIBLE
-
-        // 댓글 입력란에 포커스가 생길 때, 댓글 RecyclerView의 마지막 항목으로 자동 스크롤
-        val commentEditText = view.findViewById<EditText>(R.id.commentEditText)
-        commentEditText.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                commentRecyclerView.post {
-                    if (commentRecyclerView.adapter != null && commentRecyclerView.adapter!!.itemCount > 0) {
-                        commentRecyclerView.scrollToPosition(commentRecyclerView.adapter!!.itemCount - 1)
-                    }
-                }
-            }
+        // 뒤로가기 버튼
+        view.findViewById<ImageView>(R.id.backButton).setOnClickListener {
+            requireActivity().onBackPressed()
         }
-
-        // 나머지 댓글 토글(필요 시) 관련 코드는 삭제하거나 주석 처리합니다.
     }
 
-
-    private fun loadPostDetails() {
-        val postRef = firestore.collection("posts").document(postId)
-        postRef.get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    detailPostTitle.text = document.getString("title") ?: "제목 없음"
-                    detailPostContent.text = document.getString("content") ?: "내용 없음"
-                    detailPostCategory.text = document.getString("category") ?: "카테고리 없음"
-                    detailPostNickname.text = document.getString("nickname") ?: "닉네임 없음"
-
-                    val timestamp = document.getLong("timestamp") ?: 0L
-                    detailPostTimestamp.text = getRelativeTime(timestamp)
-
-                    val imageUrl = document.getString("imageUrl") ?: ""
-                    if (imageUrl.isNotEmpty()) {
-                        detailPostImage.visibility = View.VISIBLE
-                        detailPostImage.load(imageUrl) { crossfade(true) }
-                    } else {
-                        detailPostImage.visibility = View.GONE
-                    }
-
-                    postAuthorUid = document.getString("uid") ?: ""
-                    val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
-                    deleteTextView.visibility = if (currentUserUid != null && currentUserUid == postAuthorUid) View.VISIBLE else View.GONE
-
-                    val hashtags = document.get("hashtags") as? List<String> ?: emptyList()
-                    hashtagTextView.text = hashtags.joinToString(", ")
-                } else {
-                    Toast.makeText(context, "게시글을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(context, "게시글 로드 실패: ${exception.message}", Toast.LENGTH_SHORT).show()
-            }
-    }
-
+    // 댓글 작성 메서드
     private fun postComment(commentText: String) {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return
         val uid = currentUser.uid
-        // user_profiles 컬렉션에서 닉네임을 가져오기
         firestore.collection("user_profiles").document(uid)
             .get()
             .addOnSuccessListener { document ->
@@ -238,8 +191,19 @@ class PostDetailFragment : Fragment() {
                             "nickname" to nickname
                         )
                     )
-                    .addOnSuccessListener {
+                    .addOnSuccessListener { result ->
                         Toast.makeText(context, "댓글 작성 완료!", Toast.LENGTH_SHORT).show()
+                        // 🔔 알림 생성 호출
+                        if (postAuthorUid.isNotEmpty() && postAuthorUid != uid) {
+                            createNotification(
+                                recipientUid = postAuthorUid,
+                                senderUid = uid,
+                                senderNickname = nickname,
+                                postId = postId,
+                                commentId = result.id,
+                                type = "comment"
+                            )
+                        }
                         loadComments()
                     }
                     .addOnFailureListener { e ->
@@ -251,11 +215,10 @@ class PostDetailFragment : Fragment() {
             }
     }
 
-
+    // 답글 작성 메서드
     private fun postReply(parentComment: Comment, replyText: String) {
         val currentUser = FirebaseAuth.getInstance().currentUser ?: return
         val uid = currentUser.uid
-        // user_profiles 컬렉션에서 닉네임을 가져오기
         firestore.collection("user_profiles").document(uid)
             .get()
             .addOnSuccessListener { document ->
@@ -273,8 +236,19 @@ class PostDetailFragment : Fragment() {
                             "nickname" to nickname
                         )
                     )
-                    .addOnSuccessListener {
+                    .addOnSuccessListener { result ->
                         Toast.makeText(context, "답글 작성 완료!", Toast.LENGTH_SHORT).show()
+                        // 🔔 알림 생성 호출
+                        if (postAuthorUid.isNotEmpty() && postAuthorUid != uid) {
+                            createNotification(
+                                recipientUid = postAuthorUid,
+                                senderUid = uid,
+                                senderNickname = nickname,
+                                postId = postId,
+                                commentId = result.id,
+                                type = "reply"
+                            )
+                        }
                         loadComments()
                     }
                     .addOnFailureListener { e ->
@@ -286,8 +260,31 @@ class PostDetailFragment : Fragment() {
             }
     }
 
+    // 알림을 Firestore에 저장하는 헬퍼
+    private fun createNotification(
+        recipientUid: String,
+        senderUid: String,
+        senderNickname: String,
+        postId: String,
+        commentId: String?,
+        type: String = "comment"
+    ) {
+        val notif = mapOf(
+            "senderUid" to senderUid,
+            "senderNickname" to senderNickname,
+            "postId" to postId,
+            "commentId" to commentId,
+            "type" to type,
+            "timestamp" to System.currentTimeMillis(),
+            "isRead" to false
+        )
+        firestore.collection("users")
+            .document(recipientUid)
+            .collection("notifications")
+            .add(notif)
+    }
 
-    // 모든 댓글(및 답글) 불러오기 및 계층 구성
+    // 실시간 댓글/답글 로드 메서드
     private fun loadComments() {
         firestore.collection("posts")
             .document(postId)
@@ -296,92 +293,106 @@ class PostDetailFragment : Fragment() {
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val allDocs = querySnapshot.documents
-                // 모든 댓글 문서를 Comment 객체로 변환
-                val allComments = allDocs.map { doc ->
-                    Comment(
-                        commentId = doc.id,
-                        text = doc.getString("text") ?: "",
-                        timestamp = doc.getLong("timestamp") ?: 0L,
-                        uid = doc.getString("uid"),
-                        nickname = doc.getString("nickname"),
-                        replies = emptyList()
-                    )
-                }
-                // 최상위 댓글 (parentId == null)
-                val topComments = allComments.filter {
-                        doc ->
-                    doc.commentId.isNotEmpty() && (doc.commentId != null) // parentId는 문서 내에 저장되어 있지 않으므로, 최상위 댓글은 모두 가져온다고 가정
-
-                }
-                var processedCount = 0
                 val commentsWithReplies = mutableListOf<Comment>()
+                var processedCount = 0
+
                 if (allDocs.isEmpty()) {
+                    comments.clear()
                     commentAdapter.notifyDataSetChanged()
-                }
-                for (doc in allDocs) {
-                    val parentId = doc.getString("parentId")
-                    // 최상위 댓글만 처리 (답글은 나중에 댓글 문서의 하위 컬렉션으로 불러옴)
-                    if (parentId == null) {
-                        val commentId = doc.id
-                        val commentText = doc.getString("text") ?: ""
-                        val timestamp = doc.getLong("timestamp") ?: 0L
-                        val uid = doc.getString("uid") ?: ""
-                        val nickname = doc.getString("nickname") ?: "닉네임 없음"
-                        val baseComment = Comment(
-                            commentId = commentId,
-                            text = commentText,
-                            timestamp = timestamp,
-                            uid = uid,
-                            nickname = nickname,
-                            replies = emptyList()
-                        )
-                        // 답글 불러오기
-                        doc.reference.collection("replies")
-                            .orderBy("timestamp")
-                            .get()
-                            .addOnSuccessListener { replySnapshot ->
-                                val replyList = replySnapshot.documents.map { replyDoc ->
-                                    Reply(
-                                        text = replyDoc.getString("text") ?: "",
-                                        timestamp = replyDoc.getLong("timestamp") ?: 0L,
-                                        uid = replyDoc.getString("uid"),
-                                        nickname = replyDoc.getString("nickname"),
-                                        replyId = replyDoc.id
-                                    )
+                } else {
+                    for (doc in allDocs) {
+                        val parentId = doc.getString("parentId")
+                        if (parentId == null) {
+                            val baseComment = Comment(
+                                commentId = doc.id,
+                                text = doc.getString("text") ?: "",
+                                timestamp = doc.getLong("timestamp") ?: 0L,
+                                uid = doc.getString("uid"),
+                                nickname = doc.getString("nickname"),
+                                replies = emptyList()
+                            )
+                            doc.reference.collection("replies")
+                                .orderBy("timestamp")
+                                .get()
+                                .addOnSuccessListener { replySnapshot ->
+                                    val replyList = replySnapshot.documents.map { replyDoc ->
+                                        Reply(
+                                            text = replyDoc.getString("text") ?: "",
+                                            timestamp = replyDoc.getLong("timestamp")
+                                                ?: 0L,
+                                            uid = replyDoc.getString("uid"),
+                                            nickname = replyDoc.getString("nickname"),
+                                            replyId = replyDoc.id
+                                        )
+                                    }
+                                    commentsWithReplies.add(baseComment.copy(replies = replyList))
+                                    processedCount++
+                                    if (processedCount == allDocs.filter { it.getString("parentId") == null }.size) {
+                                        comments.clear()
+                                        comments.addAll(commentsWithReplies.sortedBy { it.timestamp })
+                                        commentAdapter.notifyDataSetChanged()
+                                        view?.findViewById<TextView>(R.id.toggleCommentText)
+                                            ?.text = "댓글[${allDocs.size}]"
+                                    }
                                 }
-                                commentsWithReplies.add(baseComment.copy(replies = replyList))
-                                processedCount++
-                                if (processedCount == allDocs.filter { it.getString("parentId") == null }.size) {
-                                    comments.clear()
-                                    comments.addAll(commentsWithReplies.sortedBy { it.timestamp })
-                                    commentAdapter.notifyDataSetChanged()
-                                }
-                            }
-                            .addOnFailureListener {
-                                commentsWithReplies.add(baseComment)
-                                processedCount++
-                                if (processedCount == allDocs.filter { it.getString("parentId") == null }.size) {
-                                    comments.clear()
-                                    comments.addAll(commentsWithReplies.sortedBy { it.timestamp })
-                                    commentAdapter.notifyDataSetChanged()
-                                }
-                            }
+                        }
                     }
                 }
-                val toggleCommentText: TextView? = view?.findViewById(R.id.toggleCommentText)
-                toggleCommentText?.text = "댓글[${allDocs.size}]"
             }
             .addOnFailureListener { e ->
                 Toast.makeText(context, "댓글 불러오기 실패: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
-    private fun showDeleteConfirmation() {
+    override fun onStart() {
+        super.onStart()
+        // Firestore 리스너 등록
+        listenToPostChanges()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        postListener?.remove()
+    }
+
+    private fun listenToPostChanges() {
+        val postRef = firestore.collection("posts").document(postId)
+        postListener = postRef.addSnapshotListener { document, error ->
+            if (error != null) {
+                Log.e("PostDetailFragment", "데이터 리스너 오류: ${error.message}")
+                return@addSnapshotListener
+            }
+            document?.let {
+                postAuthorUid = it.getString("uid") ?: ""
+            }
+        }
+    }
+
+    private fun showMenuOptions() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser == null || currentPost == null) {
+            Toast.makeText(context, "데이터 로딩 중입니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (currentUser.uid != currentPost?.uid) {
+            Toast.makeText(context, "수정 및 삭제 권한이 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val options = arrayOf("삭제", "수정")
         AlertDialog.Builder(requireContext())
-            .setTitle("게시글 삭제")
-            .setMessage("게시글을 삭제하시겠습니까?")
-            .setPositiveButton("삭제") { _, _ -> deletePost() }
-            .setNegativeButton("취소") { dialog, _ -> dialog.dismiss() }
+            .setTitle("옵션 선택")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> deletePost()
+                    1 -> {
+                        Intent(requireContext(), WritingActivity::class.java).apply {
+                            putExtra("temp_post", Gson().toJson(currentPost))
+                            putExtra("category", currentPost?.category)
+                            startActivity(this)
+                        }
+                    }
+                }
+            }
             .show()
     }
 

@@ -112,8 +112,7 @@
                 android:layout_height="32dp"
                 android:minWidth="64dp"
                 android:text="최신 글"
-                android:backgroundTint="@null"
-                android:background="@drawable/rect_button"
+                android:backgroundTint="#B1C1CE"
                 android:textColor="@android:color/white"
                 android:textSize="10sp"
                 android:gravity="center" />
@@ -125,8 +124,7 @@
                 android:minWidth="64dp"
                 android:layout_marginStart="8dp"
                 android:text="인기 글"
-                android:backgroundTint="@null"
-                android:background="@drawable/rect_button"
+                android:backgroundTint="#B1C1CE"
                 android:textColor="@android:color/white"
                 android:textSize="10sp"
                 android:gravity="center" />
