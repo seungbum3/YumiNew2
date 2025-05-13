@@ -4,20 +4,23 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.opggyumi.ItemSelectionActivity
-import com.example.opggyumi.MyPageActivity
 import com.example.opggyumi.LoginActivity
+import com.example.opggyumi.MyPageActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 
 class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
         val settingsContainer = findViewById<LinearLayout>(R.id.settingsContainer)
         val settingTexts = listOf(
             "로그아웃",
@@ -27,12 +30,12 @@ class SettingsActivity : AppCompatActivity() {
             "알림 설정",
             "테마 설정",
             "이용약관",
-            "개인정보 처리방침"
+            "개인정보 처리방침",
+            "회원탈퇴"
         )
 
         for (i in settingTexts.indices) {
             val itemView = layoutInflater.inflate(R.layout.item_setting, settingsContainer, false)
-
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -46,35 +49,105 @@ class SettingsActivity : AppCompatActivity() {
             when (settingTexts[i]) {
                 "로그아웃" -> {
                     itemView.setOnClickListener {
-                        // Firebase 로그아웃
                         FirebaseAuth.getInstance().signOut()
-                        // SharedPreferences에 저장된 로그인 정보 삭제
                         val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
                         sharedPref.edit().remove("loggedInUserId").apply()
-                        // LoginActivity로 전환 (백스택 모두 제거)
-                        val intent = Intent(this, LoginActivity::class.java)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                        startActivity(intent)
+                        Intent(this, LoginActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                            startActivity(this)
+                        }
                         finish()
                     }
                 }
                 "나만의 아이템 즐겨찾기" -> {
                     itemView.setOnClickListener {
-                        val intent = Intent(this, ItemSelectionActivity::class.java)
-                        startActivity(intent)
+                        startActivity(Intent(this, ItemSelectionActivity::class.java))
                     }
                 }
-                // 필요한 경우 다른 항목에 대해서도 처리
+                "테마 설정" -> {
+                    itemView.setOnClickListener {
+                        startActivity(Intent(this, ThemeSettingsActivity::class.java))
+                    }
+                }
+                "회원탈퇴" -> {
+                    itemView.setOnClickListener {
+                        AlertDialog.Builder(this)
+                            .setTitle("회원탈퇴")
+                            .setMessage("회원탈퇴 하시겠습니까?")
+                            .setNegativeButton("취소", null)
+                            .setPositiveButton("탈퇴") { _, _ -> performWithdrawal() }
+                            .show()
+                    }
+                }
+                // 필요하다면 다른 항목 추가 처리...
             }
 
             settingsContainer.addView(itemView)
         }
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
-        btnBack.setOnClickListener {
-            val intent = Intent(this, MyPageActivity::class.java)
-            startActivity(intent)
+
+        findViewById<ImageButton>(R.id.btnBack).setOnClickListener {
+            startActivity(Intent(this, MyPageActivity::class.java))
             finish()
         }
+    }
+
+    private fun performWithdrawal() {
+        val auth = FirebaseAuth.getInstance()
+        val user = auth.currentUser
+        if (user == null) {
+            Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val uid = user.uid
+        val email = user.email ?: ""
+
+        val db = FirebaseFirestore.getInstance()
+        val batch = db.batch()
+
+        // 사용자 데이터 삭제
+        db.collection("posts").whereEqualTo("uid", uid).get()
+            .addOnSuccessListener { posts ->
+                posts.documents.forEach { batch.delete(it.reference) }
+                db.collection("comments").whereEqualTo("uid", uid).get()
+                    .addOnSuccessListener { comments ->
+                        comments.documents.forEach { batch.delete(it.reference) }
+                        batch.delete(db.collection("users").document(uid))
+
+                        // 탈퇴 이메일을 차단 리스트에 추가
+                        val banRef = db.collection("banned_emails").document(email)
+                        batch.set(banRef, mapOf("timestamp" to FieldValue.serverTimestamp()))
+
+                        // 배치 커밋
+                        batch.commit().addOnCompleteListener { task ->
+                            if (!task.isSuccessful) {
+                                Toast.makeText(this, "데이터 삭제 실패", Toast.LENGTH_LONG).show()
+                                return@addOnCompleteListener
+                            }
+                            // Firebase Auth 계정 삭제
+                            user.delete().addOnCompleteListener { authTask ->
+                                if (authTask.isSuccessful) {
+                                    // 로컬 데이터 정리
+                                    getSharedPreferences("UserPrefs", MODE_PRIVATE)
+                                        .edit().clear().apply()
+                                    // 로그인 화면으로 이동
+                                    Intent(this, LoginActivity::class.java).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    }.also { startActivity(it) }
+                                    Toast.makeText(this, "회원탈퇴가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(
+                                        this,
+                                        "계정 삭제 실패: ${authTask.exception?.message}",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+                        }
+                    }
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "데이터 삭제 실패: ${e.message}", Toast.LENGTH_LONG).show()
+            }
     }
 
     private fun dpToPx(dp: Int): Int {

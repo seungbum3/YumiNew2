@@ -6,4 +6,10 @@
     </style>
 
     <style name="Theme.Opggyumi" parent="Base.Theme.Opggyumi" />
+    <!-- 로그인 화면 전용 라이트 테마 -->
+    <style name="Theme.Opggyumi.Light" parent="Theme.Material3.Light.NoActionBar">
+        <!-- 필요하다면 라이트 모드 전용 색상·속성 오버라이드 -->
+    </style>
+
+
 </resources>

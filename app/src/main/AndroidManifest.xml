@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
+        android:name=".MyApp"
         android:enableOnBackInvokedCallback="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -18,43 +19,57 @@
         android:theme="@style/Theme.Opggyumi"
         tools:targetApi="31">
 
-        <activity android:name=".SettingsActivity"
-            android:exported="false"/>
-        <activity
-            android:name=".MainpageActivity"
-            android:exported="false" />
-        <activity android:name=".comment.TempPostsActivity"
-            android:exported="false"/>
-        <activity
-            android:name=".JoinActivity"
-            android:exported="false" />
-        <activity
-            android:name=".alarm.NotificationActivity"
-            android:exported="false" />
-        <activity
-            android:name=".comment.MainActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MyPageActivity"
-            android:exported="false" />
+    <activity android:name=".SettingsActivity"
+        android:exported="false"/>
+    <activity
+        android:name=".ThemeSettingsActivity"
+        android:exported="false"
+        android:label="테마 설정"
+        android:theme="@style/Theme.Opggyumi"/>
+    <activity
+        android:name=".MainpageActivity"
+        android:exported="false" />
+    <activity android:name=".comment.TempPostsActivity"
+        android:exported="false"/>
+    <activity
+        android:name=".JoinActivity"
+        android:exported="false" />
+    <activity
+        android:name=".alarm.NotificationActivity"
+        android:exported="false" />
+    <activity
+        android:name=".comment.MainActivity"
+        android:exported="false" />
+    <activity
+        android:name=".MyPageActivity"
+        android:exported="false" />
         <activity
             android:name=".LoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".comment.WritingActivity"
-            android:exported="false" />
-        <activity
-            android:name=".comment.HashtagActivity"
-            android:exported="false"/>
-        <activity
-            android:name=".MainSplashActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Opggyumi.Light">
+        </activity>
+    <activity
+        android:name=".comment.WritingActivity"
+        android:exported="false" />
+    <activity
+        android:name=".comment.HashtagActivity"
+        android:exported="false"/>
+    <activity
+        android:name=".MainSplashActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
+        <service
+            android:name=".MyFirebaseMessagingService"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
-        </activity>
+        </service>
 
-    </application>
+</application>
 
-</manifest>
+    </manifest>
