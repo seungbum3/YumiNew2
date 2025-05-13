@@ -13,6 +13,7 @@ import com.example.yumi2.model.Item
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+
 class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSelectionListener {
 
     private lateinit var championSelector: FrameLayout
@@ -99,6 +100,12 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             .addOnSuccessListener { document ->
                 if (document != null && document.data != null) {
                     val championData = document.data!!
+                    val attackSpeeds = championData["attack_speeds"] as? Map<String, Number>
+                    if (attackSpeeds != null && currentChampionId != null) {
+                        // 앱 전역 캐시에 저장 (FirebaseCache는 아래 참고)
+                        FirebaseCache.attackSpeedData[currentChampionId!!] =
+                            attackSpeeds.mapValues { it.value.toDouble() }
+                    }
                     val name = championData["name"] as? String ?: ""
                     val baseStats = championData["base_stats"] as? Map<String, Number>
                     val growthStats = championData["growth_stats"] as? Map<String, Number>
@@ -134,7 +141,46 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             .addOnFailureListener { e ->
                 Toast.makeText(this, "데이터 불러오기 오류: ${e.message}", Toast.LENGTH_LONG).show()
             }
+
     }
+
+    private fun parseItemStats(statsString: String): Map<String, Double> {
+        val result = mutableMapOf<String, Double>()
+        val cleaned = statsString.trim().removePrefix("{").removeSuffix("}")
+        val pairs = cleaned.split(",")
+        for (pair in pairs) {
+            val keyValue = pair.split("=")
+            if (keyValue.size == 2) {
+                var key = keyValue[0].trim()
+                key = when (key) {
+                    "기본 마나 재생" -> "manaregen"
+                    "체력 회복 및 보호막" -> "has"
+                    "기본 체력 재생" -> "hpregen"
+                    "공격력" -> "attackdamage"
+                    "주문력" -> "abilitypower"
+                    "방어력" -> "armor"
+                    "마법 저항력" -> "spellblock"
+                    "공격 속도" -> "attackspeed"
+                    "스킬 가속" -> "cooldownreduction"
+                    "치명타 확률" -> "crit"
+                    "이동 속도" -> "movespeed"
+                    "물리 관통력" -> "attackpenetration"
+                    "방어구 관통력" -> "armorpenetration"
+                    "마법 관통력" -> "magicpenetration"
+                    "체력" -> "hp"
+                    "마나" -> "mp"
+                    "생명력 흡수" -> "lifesteal"
+                    "공격 사거리" -> "attackrange"
+                    "강인함" -> "tenacity"
+                    else -> key
+                }
+                val value = keyValue[1].trim().replace("%", "").toDoubleOrNull() ?: 0.0
+                result[key] = result.getOrDefault(key, 0.0) + value
+            }
+        }
+        return result
+    }
+
 
     // updateStats: 챔피언의 기본+성장 stat, extraStats, 즐겨찾기 아이템 보너스를 합산하여 표시
     private fun updateStats(
@@ -147,7 +193,18 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
         statsTable.removeAllViews()
         if (baseStats == null || growthStats == null) return
 
-        // filterMapping: label -> 내부 키 (챔피언 API와 아이템 stat에 사용)
+        // 즐겨찾기 아이템 보너스 계산: favoriteItems의 stat 문자열 파싱
+        val itemBonusStats = mutableMapOf<String, Double>()
+        for (item in favoriteItems) {
+            item?.let {
+                val bonusMap = parseItemStats(it.stats)
+                for ((key, bonusValue) in bonusMap) {
+                    itemBonusStats[key] = (itemBonusStats[key] ?: 0.0) + bonusValue
+                }
+            }
+        }
+
+        // filterMapping: label -> 내부 키
         val filterMapping = listOf(
             "체력" to "hp",
             "마나" to "mp",
@@ -170,28 +227,16 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             "강인함" to "tenacity"
         )
 
-        // percentLabels: 값 뒤에 "%" 붙여야 하는 항목
         val percentLabels = setOf("치명타 확률", "기본 체력 재생", "기본 마나 재생", "체력 회복 및 보호막", "생명력 흡수", "강인함")
 
-        // 챔피언 기본+성장 능력치 계산 함수 (없으면 0)
+        // 스탯 계산 함수
         fun calculateChampionStat(internalKey: String): Double {
             return if (internalKey == "attackspeed") {
-                val baseAttackSpeed = baseStats["attackspeed"]?.toDouble() ?: 0.0
-                if (finalAttackSpeed != null) {
-                    val finalAS = finalAttackSpeed.toDouble()
-                    val multiplier = finalAS / baseAttackSpeed  // 예: 1.013 / 0.625 ≒ 1.6208
-                    // 보간 시, 선형 대신 x^p 형태의 비선형 보간 (p=1.124)
-                    val interpolatedMultiplier = 1 + (multiplier - 1) * Math.pow((level - 1) / 17.0, 1.124)
-                    baseAttackSpeed * interpolatedMultiplier
-                } else {
-                    // fallback: 기존 계산법 사용
-                    val shownAS = baseStats["attackspeed"]?.toDouble() ?: 0.0
-                    val growth = growthStats["attackspeed"]?.toDouble() ?: 0.0
-                    val ratio = baseStats["attackspeedratio"]?.toDouble() ?: 1.0
-                    val rawAS = shownAS / ratio
-                    val scaledAS = rawAS * (1 + growth * (level - 1) * 0.0175)
-                    scaledAS * ratio
-                }
+                val championId = currentChampionId ?: return 0.0
+                val attackSpeedMap = FirebaseCache.attackSpeedData[championId]
+                val baseAS = attackSpeedMap?.get(level.toString()) ?: return 0.0
+                val bonusAS = itemBonusStats["attackspeed"] ?: 0.0
+                baseAS * (1 + bonusAS / 100.0)
             } else {
                 val base = baseStats[internalKey]?.toDouble() ?: 0.0
                 val growth = growthStats[internalKey]?.toDouble() ?: 0.0
@@ -199,26 +244,12 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             }
         }
 
-
-
-
         // extraStats 값 (없으면 0)
         fun getExtraStat(internalKey: String): Double {
             return extraStats?.get(internalKey)?.toDouble() ?: 0.0
         }
 
-        // 즐겨찾기 아이템 보너스 계산: favoriteItems의 stat 문자열 파싱
-        val itemBonusStats = mutableMapOf<String, Double>()
-        for (item in favoriteItems) {
-            item?.let {
-                val bonusMap = parseItemStats(it.stats)
-                for ((key, bonusValue) in bonusMap) {
-                    itemBonusStats[key] = (itemBonusStats[key] ?: 0.0) + bonusValue
-                }
-            }
-        }
-
-        // filterMapping에 정의된 stat들에 대해 챔피언 능력치, extraStats, 아이템 보너스를 합산하여 표시
+        // 스탯을 화면에 표시
         for ((label, internalKey) in filterMapping) {
             val championValue = calculateChampionStat(internalKey)
             val extraValue = getExtraStat(internalKey)
@@ -226,13 +257,12 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             val total = championValue + extraValue + bonusValue
 
             Log.d("UpdateStats", "$label: champ=$championValue, extra=$extraValue, bonus=$bonusValue, total=$total")
-            // champrow_stat.xml 인플레이트하여 행 생성
+
             val rowView = LayoutInflater.from(this).inflate(R.layout.champrow_stat, statsTable, false) as TableRow
             val iconView = rowView.findViewById<ImageView>(R.id.statIcon)
             val statNameTextView = rowView.findViewById<TextView>(R.id.statName)
             val statValueTextView = rowView.findViewById<TextView>(R.id.statValue)
 
-            // statIconMap: label -> drawable id
             val statIconMap = mapOf(
                 "공격력" to R.drawable.lol_stat_attack,
                 "주문력" to R.drawable.lol_stat_magic,
@@ -257,8 +287,6 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
 
             val iconResId = statIconMap[label] ?: R.drawable.yumi_icon
             iconView.setImageResource(iconResId)
-
-
             statNameTextView.text = label
             statValueTextView.text = when {
                 label == "공격 속도" -> String.format("%.3f", total)
@@ -270,46 +298,6 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
         }
     }
 
-    // parseItemStats: 아이템 stat 문자열 파싱 및 내부 키 변환
-    private fun parseItemStats(statsString: String): Map<String, Double> {
-        val result = mutableMapOf<String, Double>()
-        val cleaned = statsString.trim().removePrefix("{").removeSuffix("}")
-        val pairs = cleaned.split(",")
-        for (pair in pairs) {
-            val keyValue = pair.split("=")
-            if (keyValue.size == 2) {
-                var key = keyValue[0].trim()
-                // 내부 키 변환: 아이템 stat 문자열에 따라 조정
-                key = when (key) {
-                    "기본 마나 재생" -> "manaregen"
-                    "체력 회복 및 보호막" -> "has"
-                    "기본 체력 재생" -> "hpregen"
-                    "공격력" -> "attackdamage"
-                    "주문력" -> "abilitypower"
-                    "방어력" -> "armor"
-                    "마법 저항력" -> "spellblock"
-                    "공격 속도" -> "attackspeed"
-                    "스킬 가속" -> "cooldownreduction"
-                    "치명타 확률" -> "crit"
-                    "이동 속도" -> "movespeed"
-                    "물리 관통력" -> "attackpenetration"
-                    "방어구 관통력" -> "armorpenetration"
-                    "마법 관통력" -> "magicpenetration"
-                    "기본 체력 재생" -> "hpregen"
-                    "기본 마나 재생" -> "manaregen"
-                    "체력" -> "hp"
-                    "마나" -> "mp"
-                    "생명력 흡수" -> "lifesteal"
-                    "공격 사거리" -> "attackrange"
-                    "강인함" -> "tenacity"
-                    else -> key
-                }
-                val value = keyValue[1].trim().replace("%", "").toDoubleOrNull() ?: 0.0
-                result[key] = result.getOrDefault(key, 0.0) + value
-            }
-        }
-        return result
-    }
 
     private fun loadSavedConfiguration(savedIds: List<String?>) {
         val itemIds = savedIds.filterNotNull()
