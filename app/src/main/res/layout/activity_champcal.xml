@@ -1,18 +1,20 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#80929F"> <!-- 강한 배경 -->
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#E7EBED"> <!-- 강한 배경 -->
 
     <!-- 상단 왼쪽 뒤로가기 버튼 -->
     <ImageView
         android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
         android:src="@drawable/ic_back"
-        android:contentDescription="뒤로가기" />
+        android:contentDescription="뒤로 가기"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
     <!-- 스크롤 뷰 내부 밝은 배경 -->
     <ScrollView
@@ -113,6 +115,15 @@
                 android:textSize="16sp"
                 android:backgroundTint="#B1C1CE"
                 android:layout_marginTop="16dp" />
+            <Button
+                android:id="@+id/btnResetItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="아이템 초기화"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:backgroundTint="#B1C1CE"
+                android:layout_marginTop="16dp"/>
 
             <!-- 아이템 슬롯 -->
             <LinearLayout
