@@ -7,11 +7,11 @@ plugins {
 
 
 android {
-    namespace = "com.example.opggyumi"
+    namespace = "com.example.yumi2"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.opggyumi"
+        applicationId = "com.example.yumi2"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

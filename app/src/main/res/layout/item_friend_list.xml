@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="#B1C1CE"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/friendProfileImage"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/error_image" />
+
+    <TextView
+        android:id="@+id/friendName"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:gravity="center_vertical"
+        android:text="닉네임"
+        android:textColor="#E7EBED"
+        android:textSize="16sp" />
+    <!-- 오른쪽 화살표 아이콘 -->
+    <ImageView
+        android:id="@+id/ivArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_arrow_right"
+        android:contentDescription="친구 요청 옵션" />
+
+    <!-- 옵션 메뉴 버튼 (점 3개) -->
+    <ImageView
+        android:id="@+id/optionsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_more_vert"
+        android:contentDescription="옵션 메뉴" />
+</LinearLayout>

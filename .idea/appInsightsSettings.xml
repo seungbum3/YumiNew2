@@ -8,8 +8,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.example.opggyumi" />
-                  <option name="mobileSdkAppId" value="1:676999256577:android:1c9a4c39ebe8452950fe00" />
+                  <option name="appId" value="com.example.yumi2" />
+                  <option name="mobileSdkAppId" value="1:676999256577:android:85f70daa579ee09b50fe00" />
                   <option name="projectId" value="yumi-5f5c0" />
                   <option name="projectNumber" value="676999256577" />
                 </ConnectionSetting>
