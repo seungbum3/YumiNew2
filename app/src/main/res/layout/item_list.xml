@@ -11,7 +11,7 @@
     <!-- 아이템 이미지 -->
     <ImageView
         android:id="@+id/itemImage"
-        android:layout_width="match_parent"
+        android:layout_width="48dp"
         android:layout_height="0dp"
         android:layout_weight="3"
         android:scaleType="fitCenter"
@@ -20,7 +20,7 @@
     <!-- 아이템 이름 -->
     <TextView
         android:id="@+id/itemName"
-        android:layout_width="match_parent"
+        android:layout_width="48dp"
         android:layout_height="30dp"
         android:textSize="12sp"
         android:textColor="#E7EBED"

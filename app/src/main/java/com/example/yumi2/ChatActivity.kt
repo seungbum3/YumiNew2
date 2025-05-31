@@ -1,13 +1,5 @@
 package com.example.yumi2
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-
 import android.graphics.Rect
 import android.os.Bundle
 import android.text.Editable
@@ -21,6 +13,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.yumi2.ChatAdapter
+import com.example.yumi2.ChatMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -206,52 +200,6 @@ class ChatActivity : AppCompatActivity() {
             }
     }
 
-    private fun showChatNotification(senderName: String, message: String) {
-        val channelId = "chat_messages"
-        val notificationId = System.currentTimeMillis().toInt()
-
-        // --- Android 13+ 알림 권한 체크 ---
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            val perm = android.Manifest.permission.POST_NOTIFICATIONS
-            val granted = androidx.core.content.ContextCompat.checkSelfPermission(this, perm)
-            if (granted != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                // 권한이 없으면 알림 안 띄움
-                Log.w("ChatActivity", "알림 권한 없음, 알림 건너뜀")
-                return
-            }
-        }
-
-        // (나머지 알림 생성 코드는 그대로)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "채팅 메시지 알림",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(channel)
-        }
-
-        val intent = Intent(this, ChatActivity::class.java)
-        val pi = PendingIntent.getActivity(
-            this, notificationId, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("$senderName 님의 메시지")
-            .setContentText(message)
-            .setAutoCancel(true)
-            .setContentIntent(pi)
-
-        try {
-            NotificationManagerCompat.from(this).notify(notificationId, builder.build())
-        } catch (e: SecurityException) {
-            Log.e("ChatActivity", "알림 전송 실패: 권한 부족", e)
-        }
-    }
-
 
     // 메시지 전송 함수
     private fun sendMessage(chatId: String, senderId: String, message: String) {
@@ -293,17 +241,6 @@ class ChatActivity : AppCompatActivity() {
             }
     }
 
-    private fun shouldShowChatNotification(callback: (Boolean) -> Unit) {
-        val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return callback(true)
-        FirebaseFirestore.getInstance()
-            .collection("user_profiles")
-            .document(myUid)
-            .get()
-            .addOnSuccessListener { doc ->
-                callback(doc.getBoolean("notificationOn") ?: true)
-            }
-            .addOnFailureListener { callback(true) }
-    }
 
     // 채팅 내역 불러오기 함수
     private fun loadMessages(chatId: String) {
@@ -325,28 +262,25 @@ class ChatActivity : AppCompatActivity() {
 
                 Log.d("ChatActivity", "✅ 불러온 메시지 개수: ${snapshots.size()}")
 
+                // 📌 기존 리스트를 업데이트하고 RecyclerView에 반영
                 messages.clear()
-                for (dc in snapshots.documentChanges) {
-                    if (dc.type == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
-                        val message = dc.document.toObject(ChatMessage::class.java)
-                        if (message != null) {
-                            messages.add(message)
-                            if (message.senderId != currentUserId) {
-                                shouldShowChatNotification { enabled ->
-                                    if (enabled) {
-                                        showChatNotification(friendNickname, message.message)
-                                    }
-                                }
-                            }
-                        }
+                for (doc in snapshots.documents) {
+                    val message = doc.toObject(ChatMessage::class.java)
+                    if (message != null) {
+                        Log.d("ChatActivity", "📩 메시지 로드: ${message.message}")
+                        messages.add(message)
+                    } else {
+                        Log.e("ChatActivity", "❌ 메시지 변환 실패 - 문서 ID: ${doc.id}")
                     }
                 }
+
+                // 📌 UI 업데이트 (새로운 메시지를 RecyclerView에 표시)
                 runOnUiThread {
                     chatAdapter.updateMessages(messages)
                     chatRecyclerView.scrollToPosition(messages.size - 1)
                     Log.d("ChatActivity", "📢 RecyclerView 업데이트 완료")
                 }
+
             }
     }
-
 }

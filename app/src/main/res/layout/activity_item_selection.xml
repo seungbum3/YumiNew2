@@ -17,6 +17,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"/>
 
+
+
     <!-- 상단 슬롯 영역 -->
     <LinearLayout
         android:id="@+id/itemSlotContainerWrapper"
@@ -29,6 +31,21 @@
         app:layout_constraintTop_toBottomOf="@id/btnBack"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
+
+
+        <ToggleButton
+            android:id="@+id/toggleQuickSlot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOff="퀵 슬롯 OFF"
+            android:textOn="퀵 슬롯 ON"
+            android:background="#80929F"
+            android:textColor="#B1C1CE"
+            app:layout_constraintBottom_toTopOf="@id/btnSaveSlots"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginBottom="8dp"/>
+
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/slotRecyclerView"

@@ -70,7 +70,7 @@ class FavoritesAdapter(
         }
     }
 
-    override fun getItemCount(): Int = favoriteList.size
+        override fun getItemCount(): Int = favoriteList.size
 
     fun updateFavorites(newList: MutableList<HashMap<String, String>>) {
         favoriteList.clear()

@@ -11,9 +11,8 @@ import com.squareup.picasso.Picasso
 
 class ChampionViewHolder(
     itemView: View,
-    private val onItemClick: (ChampionData) -> Unit  // ✅ 일치해야 함
+    private val onItemClick: (ChampionData) -> Unit
 ) : RecyclerView.ViewHolder(itemView) {
-
 
     private val championImage: ImageView = itemView.findViewById(R.id.championImage)
     private val championName: TextView = itemView.findViewById(R.id.championName)

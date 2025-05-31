@@ -10,7 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
-import com.example.opggyumi.R
+import com.example.yumi2.R
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -26,6 +26,7 @@ class SettingsActivity : AppCompatActivity() {
             "로그아웃",
             "친구목록",
             "나만의 아이템 즐겨찾기",
+            "챔피언 능력치 계산기",
             "알림 설정",
             "테마 설정",
             "회원탈퇴"
@@ -64,6 +65,12 @@ class SettingsActivity : AppCompatActivity() {
                 "나만의 아이템 즐겨찾기" -> {
                     itemView.setOnClickListener {
                         startActivity(Intent(this, ItemSelectionActivity::class.java))
+                    }
+                }
+                "챔피언 능력치 계산기" -> {
+                    itemView.setOnClickListener {
+                        val intent = Intent(this, ChampcalActivity::class.java)
+                        startActivity(intent)
                     }
                 }
                 "테마 설정" -> {

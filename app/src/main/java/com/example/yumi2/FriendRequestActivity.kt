@@ -104,6 +104,9 @@ class FriendRequestActivity : AppCompatActivity(), FriendRequestAdapter.ActionLi
         batch.delete(db.collection("users").document(currentUid)
             .collection("friend_requests").document(requesterId))
 
+        batch.delete(db.collection("users").document(requesterId)
+            .collection("sent_requests").document(currentUid))
+
         batch.commit().addOnSuccessListener { loadRequests() }
     }
 

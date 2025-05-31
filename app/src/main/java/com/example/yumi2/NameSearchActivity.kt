@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.yumi2.adapter.NameSearchAdapter
 import com.example.yumi2.viewmodel.SummonerViewModel
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -91,8 +93,6 @@ class NameSearchActivity : AppCompatActivity() {
         // 검색 버튼 클릭 시
         searchButton.setOnClickListener {
             val inputText = searchInput.text.toString().trim()
-
-            // '#'가 포함되어 있지 않으면 오류 메시지 표시
             if (!inputText.contains("#")) {
                 errorText.text = "올바른 형식으로 입력하세요"
                 errorText.visibility = TextView.VISIBLE
@@ -103,7 +103,6 @@ class NameSearchActivity : AppCompatActivity() {
             val gameName = parts[0].trim()
             val tagLine = parts.getOrNull(1)?.trim() ?: ""
 
-            // FirebaseAuth에서 현재 사용자 uid 가져오기
             val currentUser = FirebaseAuth.getInstance().currentUser
             if (currentUser == null) {
                 errorText.text = "로그인 상태가 아닙니다."
@@ -112,18 +111,34 @@ class NameSearchActivity : AppCompatActivity() {
             }
             val uid = currentUser.uid
 
+            // 버튼 중복 클릭 방지
+            searchButton.isEnabled = false
 
-            // Riot API 호출
-            viewModel.searchSummoner(gameName, tagLine, uid)
-
-            // StateFlow를 수집하여 결과에 따라 UI 업데이트
             lifecycleScope.launch {
-                val summoner = try {
-                    withTimeout(2500L) {  // 최대 2.5초 대기
+                // 호출 스로틀링
+                delay(200L)
+
+                // 1차 Riot ID 기반 검색
+                var summoner = try {
+                    viewModel.searchSummonerByRiotId(gameName, tagLine, uid)
+                    withTimeout(2500L) {
                         viewModel.summonerInfo.first { it != null }
                     }
                 } catch (e: Exception) {
                     null
+                }
+
+                // 2차 fallback 검색 (이후 호출에도 딜레이)
+                if (summoner == null && tagLine != "KR1" && tagLine != "KR2") {
+                    delay(200L)
+                    summoner = try {
+                        viewModel.searchSummonerByName(gameName, uid)
+                        withTimeout(2500L) {
+                            viewModel.summonerInfo.first { it != null }
+                        }
+                    } catch (e: Exception) {
+                        null
+                    }
                 }
 
                 if (summoner == null) {
@@ -131,32 +146,30 @@ class NameSearchActivity : AppCompatActivity() {
                     errorText.visibility = TextView.VISIBLE
                 } else {
                     errorText.visibility = TextView.GONE
-
-                    // API 응답의 올바른 소환사 이름과 태그를 사용
                     val correctedGameName = summoner.gameName ?: gameName
                     val correctedTagLine = summoner.tagLine ?: tagLine
                     val formattedName = "$correctedGameName#$correctedTagLine"
 
-                    // 기존 목록에서 대소문자 구분 없이 해당 검색어가 있다면 제거
                     val index = nameSearchList.indexOfFirst { it.equals(formattedName, ignoreCase = true) }
                     if (index != -1) {
                         nameSearchList.removeAt(index)
                         adapter.notifyItemRemoved(index)
                     }
-
-                    // 최신 순으로 저장
                     nameSearchList.add(0, formattedName)
                     adapter.notifyItemInserted(0)
                     saveRecentSearches(uid)
 
-                    val intent = Intent(this@NameSearchActivity, NameSearchMainActivity::class.java)
-                    intent.putExtra("gameName", gameName)
-                    intent.putExtra("tagLine", tagLine)
-                    startActivity(intent)
-                    }
+                    startActivity(Intent(this@NameSearchActivity, NameSearchMainActivity::class.java).apply {
+                        putExtra("gameName", correctedGameName)
+                        putExtra("tagLine", correctedTagLine)
+                    })
                 }
+
+                // 버튼 재활성화
+                searchButton.isEnabled = true
             }
         }
+    }
 
     // 저장된 닉네임을 클릭했을 때 해당 닉네임을 최신으로 재정렬하고 검색 수행 후 인텐트
     private fun searchSummoner(nicknameWithTag: String) {

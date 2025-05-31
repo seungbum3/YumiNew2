@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import com.example.yumi2.viewmodel.RegisterViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -37,6 +38,11 @@ class JoinActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         findViewById<Button>(R.id.PageBack).setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        }
+
+        findViewById<TextView>(R.id.btnGoToLogin).setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }

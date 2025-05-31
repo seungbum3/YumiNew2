@@ -204,7 +204,12 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
                     } else {
                         emptyFriendsText.visibility = View.GONE
                         friendsRecyclerView.visibility = View.VISIBLE
-                        val friendsAdapter = FriendsAdapter(friendsList)
+                        val friendsAdapter = FriendsAdapter(
+                            fullList = friendsList, // 친구 전체 리스트
+                            friendsList = friendsList, // 친구 요청 등 필터링용 (필요 없으면 동일 리스트 전달 가능)
+                            layoutResId = R.layout.item_friend // 사용하고 있는 친구 아이템 레이아웃
+                        )
+
                         friendsRecyclerView.adapter = friendsAdapter
                     }
                 }

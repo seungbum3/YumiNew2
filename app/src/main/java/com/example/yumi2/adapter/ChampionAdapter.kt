@@ -14,9 +14,8 @@ import com.example.yumi2.model.ChampionData
 import com.squareup.picasso.Picasso
 
 class ChampionAdapter(
-    private val onItemClick: (ChampionData) -> Unit  // ✅ 수정된 부분
+    private val onItemClick: (ChampionData) -> Unit
 ) : ListAdapter<ChampionData, ChampionAdapter.ChampionViewHolder>(ChampionDiffCallback()) {
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChampionViewHolder {
         val view = LayoutInflater.from(parent.context)

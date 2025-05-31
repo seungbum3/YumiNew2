@@ -61,23 +61,23 @@
             android:minHeight="0dp"
             android:textSize="14sp"/>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBlock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            app:backgroundTint="#E7EBED"
-            app:useMaterialThemeColors="false"
-            android:text="차단"
-            android:textColor="#000000"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            android:minWidth="0dp"
-            android:minHeight="0dp"
-            android:textSize="14sp"/>
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        app:backgroundTint="#E7EBED"
+        app:useMaterialThemeColors="false"
+        android:text="차단"
+        android:textColor="#000000"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:textSize="14sp"/>
 
 
 
-    </LinearLayout>
+</LinearLayout>
 </LinearLayout>

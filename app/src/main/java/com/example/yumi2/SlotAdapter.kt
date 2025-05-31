@@ -11,12 +11,20 @@ import com.example.yumi2.model.Item
 
 class SlotAdapter : RecyclerView.Adapter<SlotAdapter.SlotViewHolder>() {
 
-    // 6칸 슬롯을 null로 초기화 (올바른 Item 타입 사용)
-    private val slots = MutableList<Item?>(6) { null }
+    // 6칸 슬롯을 null로 초기화
+    private val slots = MutableList(6) { null as Item? }
 
     class SlotViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val slotImage: ImageView = view.findViewById(R.id.itemImage)
         // itemName TextView는 item_slot.xml에 포함되어 있어야 함
+    }
+
+    fun clearSlots() {
+        slots.clear()  // slots가 MutableList<Item?> 형태라고 가정했을 때, 모두 null로 초기화 가능
+        for (i in 0 until 6) {
+            slots.add(null)  // 6개의 빈 슬롯으로 초기화
+        }
+        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SlotViewHolder {

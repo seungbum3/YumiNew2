@@ -11,10 +11,10 @@
 
     <Button
         android:id="@+id/PageBack"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="30dp"
         android:background="@drawable/pageback_vector"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
@@ -23,7 +23,7 @@
         android:id="@+id/appLogo"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginTop="90dp"
+        android:layout_marginTop="70dp"
         android:layout_marginStart="10dp"
         android:background="@drawable/rouned_image"
         android:clipToOutline="true"
@@ -40,7 +40,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/appLogo"
-        android:layout_marginTop="90dp"
+        android:layout_marginTop="70dp"
         android:layout_marginStart="80dp"
         android:layout_marginEnd="10dp">
 
@@ -63,7 +63,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:hint="닉네임 + #태그 검색"
-            android:textSize="16sp"
+            android:textSize="11sp"
             android:textColor="#757575"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -73,11 +73,11 @@
 
         <Button
             android:id="@+id/search"
-            android:layout_width="78dp"
+            android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_marginEnd="10dp"
             android:text="검색"
-            android:textSize="16sp"
+            android:textSize="13sp"
             android:paddingBottom="10dp"
             android:textColor="#000000"
             android:backgroundTint="#606C6C6C"
@@ -108,7 +108,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="최근 검색"
-        android:textSize="16sp"
+        android:textSize="13sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/errorText" />
@@ -119,7 +119,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="전체 삭제"
-        android:textSize="16sp"
+        android:textSize="13sp"
         android:background="@android:color/transparent"
         android:textColor="@android:color/black"
         app:layout_constraintBaseline_toBaselineOf="@+id/recentSearchTitle"

@@ -1,17 +1,16 @@
 package com.example.yumi2.model
 
 data class ChampionStats(
-    val championId: Int,
-    val championName: String,
-    val championEngId: String,
-
-    val games: Int,
-    val wins: Int,
-    val kills: Int,
-    val deaths: Int,
-    val assists: Int,
-    val cs: Int,
-    val gold: Int
+    val championId: Int = 0,
+    val championName: String = "",
+    val championEngId: String = "",
+    val games: Int = 0,
+    val wins: Int = 0,
+    val kills: Int = 0,
+    val deaths: Int = 0,
+    val assists: Int = 0,
+    val cs: Int = 0,
+    val gold: Int = 0
 ) {
     val winRate: Double
         get() = if (games > 0) (wins.toDouble() / games * 100.0) else 0.0
@@ -31,3 +30,4 @@ data class ChampionStats(
     val avgGold: Double
         get() = if (games > 0) gold.toDouble() / games else 0.0
 }
+

@@ -1,34 +1,40 @@
 package com.example.yumi2
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.yumi2.model.ChampionData
+import com.example.yumi2.MyPageActivity
 import com.example.yumi2.adapter.ChampionAdapter
-import com.example.yumi2.alarm.NotificationActivity
-import com.example.yumi2.comment.MainActivity
-import com.example.yumi2.comment.PostDetailFragment
 import com.example.yumi2.viewmodel.ChampionViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.DocumentChange
+import android.Manifest
+import android.content.pm.PackageManager
+import com.example.yumi2.alarm.NotificationActivity
+import com.example.yumi2.comment.MainActivity
+
 
 class MainpageActivity : AppCompatActivity() {
     private val viewModel: ChampionViewModel by viewModels()
@@ -42,11 +48,8 @@ class MainpageActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.mainpage)
 
-        // 딥링크 인텐트 처리: 알림 클릭 시 특정 게시글/댓글로 이동
-        intent.getStringExtra("targetPostId")?.let { postId ->
-            val commentId = intent.getStringExtra("targetCommentId")
-            openPostDetail(postId, commentId)
-        }
+        val rotationButton: Button = findViewById(R.id.Champion_rotation)
+        rotationButton.text = "이번주 로테이션 챔피언 ( ${getRotationDateRange()} )"
 
         // 요청: Android 13+ 알림 권한
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -64,75 +67,70 @@ class MainpageActivity : AppCompatActivity() {
             startActivity(Intent(this, NotificationActivity::class.java))
         }
 
-        // ─── 기존 코드 ───
         val noticeButton: Button = findViewById(R.id.notice)
+
         noticeButton.setOnClickListener {
             val url =
                 "https://www.leagueoflegends.com/ko-kr/news/game-updates/patch-2025-s1-3-notes/"
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
         }
 
-        findViewById<Button>(R.id.NameSearch).setOnClickListener {
-            startActivity(Intent(this, NameSearchActivity::class.java))
+        val NameSearch: Button = findViewById(R.id.NameSearch)
+        NameSearch.setOnClickListener {
+            val intent = Intent(this, NameSearchActivity::class.java)
+            startActivity(intent)
+        }
+
+        val tier_check: Button = findViewById(R.id.tier_check)
+        tier_check.setOnClickListener {
+            val intent = Intent(this, ChampionTierVowelActivity::class.java)
+            startActivity(intent)
         }
 
         recyclerView = findViewById(R.id.championRecyclerView)
-        recyclerView.layoutManager =
-            GridLayoutManager(this, 2, GridLayoutManager.HORIZONTAL, false)
+        recyclerView.layoutManager = GridLayoutManager(this, 2, GridLayoutManager.HORIZONTAL, false)
+
+
+        val adapter = ChampionAdapter {}
+
+        recyclerView.adapter = adapter
 
         viewModel.championList.observe(this) { championList ->
             Log.d("RecyclerView", "챔피언 리스트 업데이트됨: $championList")
-            recyclerView.adapter = ChampionAdapter(championList)
+            adapter.submitList(championList)
         }
+
+
         viewModel.fetchChampionRotations()
 
-        findViewById<BottomNavigationView>(R.id.bottomNavigation).apply {
-            selectedItemId = R.id.category1
-            setOnItemSelectedListener { item ->
-                when (item.itemId) {
-                    R.id.category1 -> true
-                    R.id.category2 -> {
-                        startActivity(Intent(this@MainpageActivity, MainActivity::class.java))
-                        finish()
-                        true
-                    }
-                    R.id.category3 -> {
-                        finish()
-                        true
-                    }
-                    R.id.category4 -> {
-                        startActivity(Intent(this@MainpageActivity, MyPageActivity::class.java))
-                        finish()
-                        true
-                    }
-                    else -> false
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        bottomNavigationView.selectedItemId = R.id.category1  // '홈'을 기본 선택
+
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.category1 -> true  // 현재 페이지이므로 이동하지 않음
+                R.id.category2 -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                    true
                 }
+
+                R.id.category3 -> {
+                    startActivity(Intent(this, BanPickMain::class.java))
+                    finish()
+                    true
+                }
+
+                R.id.category4 -> {
+                    startActivity(Intent(this, MyPageActivity::class.java))
+                    finish()
+                    true
+                }
+
+                else -> false
             }
         }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        intent.getStringExtra("targetPostId")?.let { postId ->
-            val commentId = intent.getStringExtra("targetCommentId")
-            openPostDetail(postId, commentId)
-        }
-    }
-
-    /**
-     * 알림 클릭 시, 지정된 게시글 상세로 이동시키는 메서드
-     */
-    private fun openPostDetail(postId: String, commentId: String?) {
-        val frag = PostDetailFragment().apply {
-            arguments = Bundle().apply {
-                putString("postId", postId)
-                commentId?.let { putString("highlightCommentId", it) }
-            }
-        }
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, frag)
-            .addToBackStack(null)
-            .commit()
     }
 
     private fun createNotificationChannel() {
@@ -159,21 +157,19 @@ class MainpageActivity : AppCompatActivity() {
                     if (dc.type == DocumentChange.Type.ADDED) {
                         val data = dc.document.data
                         val sender = data["senderNickname"] as? String ?: "누군가"
-                        val type   = data["type"] as? String ?: "comment"
-                        val postId = data["postId"] as? String
-                        val commentId = data["commentId"] as? String
-                        showLocalNotification(sender, type, postId, commentId)
-
+                        val type = data["type"] as? String ?: "comment"
+                        showLocalNotification(sender, type)
                     }
                 }
             }
     }
 
-    private fun showLocalNotification(sender: String, type: String, postId: String?, commentId: String?) {
+    private fun showLocalNotification(sender: String, type: String) {
         val notificationId = System.currentTimeMillis().toInt()
         val title = if (type == "reply") "$sender 님이 답글을 남겼습니다" else "$sender 님이 댓글을 남겼습니다"
         val body = "앱 내 알림센터에서 확인하세요"
 
+        // 권한 확인 (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -185,11 +181,8 @@ class MainpageActivity : AppCompatActivity() {
             }
         }
 
-        val intent = Intent(this, MainpageActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            postId?.let { putExtra("targetPostId", it) }
-            commentId?.let { putExtra("targetCommentId", it) }
-        }
+        val intent = Intent(this, NotificationActivity::class.java)
+            .apply { flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP }
         val pi = PendingIntent.getActivity(
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -208,6 +201,22 @@ class MainpageActivity : AppCompatActivity() {
         } catch (e: SecurityException) {
             Log.e("MainpageActivity", "알림 전송 실패: 권한 부족", e)
         }
+    }
+
+    fun getRotationDateRange(): String {
+        val today = java.util.Calendar.getInstance()
+
+        // 이번 주 월요일로 이동
+        today.set(java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.MONDAY)
+        val startDate = today.time
+
+        // 다음 주 월요일로 이동
+        today.add(java.util.Calendar.DATE, 7)
+        val endDate = today.time
+
+        // 날짜 포맷 지정
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+        return "${sdf.format(startDate)} ~ ${sdf.format(endDate)}"
     }
 
 }

@@ -216,7 +216,7 @@
 
     <!-- 로그인 버튼 -->
     <TextView
-        android:id="@+id/btnRegister"
+        android:id="@+id/btnGoToLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="로그인"
