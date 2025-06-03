@@ -1,5 +1,6 @@
 package com.example.yumi2
 
+import com.example.yumi2.alarm.util.AppNotificationManager
 import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
@@ -73,6 +74,11 @@ class SettingsActivity : AppCompatActivity() {
                         startActivity(intent)
                     }
                 }
+                "친구목록" -> {
+                    itemView.setOnClickListener {
+                        startActivity(Intent(this, FriendListActivity::class.java))
+                    }
+                }
                 "테마 설정" -> {
                     itemView.setOnClickListener {
                         startActivity(Intent(this, ThemeSettingsActivity::class.java))
@@ -113,11 +119,9 @@ class SettingsActivity : AppCompatActivity() {
                 switch.isChecked = isOn
             }
 
-        // 2. 스위치 on/off 변경 시 Firestore에 저장
+        // 2. 스위치 on/off 변경 시 Firestore + 전역 상태 업데이트
         switch.setOnCheckedChangeListener { _, isChecked ->
-            FirebaseFirestore.getInstance().collection("user_profiles")
-                .document(uid)
-                .update("notificationOn", isChecked)
+            com.example.yumi2.alarm.util.AppNotificationManager.setNotificationOn(this, isChecked)
         }
 
         // 3. 바텀시트 띄우기

@@ -31,6 +31,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.DocumentChange
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import com.example.yumi2.alarm.NotificationActivity
 import com.example.yumi2.comment.MainActivity
@@ -46,6 +47,7 @@ class MainpageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.example.yumi2.alarm.util.AppNotificationManager.loadNotificationSetting(this)
         setContentView(R.layout.mainpage)
 
         val rotationButton: Button = findViewById(R.id.Champion_rotation)
@@ -131,6 +133,94 @@ class MainpageActivity : AppCompatActivity() {
                 else -> false
             }
         }
+        setupChatMessageListener(this)
+    }
+
+    private fun setupChatMessageListener(context: Context) {
+        val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val firestore = FirebaseFirestore.getInstance()
+
+        firestore.collection("chats")
+            .whereArrayContains("users", myUid)
+            .get()
+            .addOnSuccessListener { chatDocs ->
+                for (chatDoc in chatDocs.documents) {
+                    val chatId = chatDoc.id
+                    firestore.collection("chats").document(chatId).collection("messages")
+                        .orderBy("timestamp")
+                        .addSnapshotListener { messageSnapshots, _ ->
+                            if (messageSnapshots == null) return@addSnapshotListener
+                            for (msgChange in messageSnapshots.documentChanges) {
+                                if (msgChange.type == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
+                                    val message = msgChange.document.toObject(com.example.yumi2.ChatMessage::class.java)
+                                    if (message.senderId != myUid) {
+                                        FirebaseFirestore.getInstance().collection("user_profiles").document(message.senderId)
+                                            .get()
+                                            .addOnSuccessListener { doc ->
+                                                val nickname = doc.getString("nickname") ?: "알 수 없음"
+                                                showChatNotification(context, message.senderId, nickname, message.message)
+                                            }
+                                    }
+                                }
+                            }
+                        }
+                }
+            }
+    }
+    private fun showChatNotification(
+        context: Context,
+        senderUid: String,
+        senderNickname: String,
+        messagePreview: String
+    ) {
+        // ① 알림 설정 OFF면 바로 return!
+        if (!com.example.yumi2.alarm.util.AppNotificationManager.notificationOn) {
+            Log.d("알림", "채팅 알림이 꺼져있어서 무시됨")
+            return
+        }
+        val CHANNEL_ID = "chat_notifications"
+        // 알림 채널 생성은 권한과 무관하지만, 알림 띄우기는 권한 체크 필요!
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID, "채팅 알림", NotificationManager.IMPORTANCE_HIGH
+            ).apply { description = "채팅이 도착하면 알려줍니다" }
+            val nm = context.getSystemService(NotificationManager::class.java)
+            nm.createNotificationChannel(channel)
+        }
+
+        // 🔴 권한 체크!
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                Log.w("MainpageActivity", "알림 권한 없음 → 알림 건너뜀")
+                return
+            }
+        }
+
+        val intent = Intent(context, ChatActivity::class.java).apply {
+            putExtra("friendId", senderUid)
+            putExtra("friendNickname", senderNickname)
+        }
+        val pi = PendingIntent.getActivity(
+            context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notif = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("${senderNickname}님이 메시지를 보냈습니다")
+            .setContentText(messagePreview)
+            .setAutoCancel(true)
+            .setContentIntent(pi)
+            .build()
+
+        try {
+            NotificationManagerCompat.from(context).notify(System.currentTimeMillis().toInt(), notif)
+        } catch (e: SecurityException) {
+            Log.e("MainpageActivity", "알림 전송 실패: 권한 부족", e)
+        }
     }
 
     private fun createNotificationChannel() {
@@ -165,6 +255,12 @@ class MainpageActivity : AppCompatActivity() {
     }
 
     private fun showLocalNotification(sender: String, type: String) {
+        // ① 알림 설정 OFF면 바로 return
+        if (!com.example.yumi2.alarm.util.AppNotificationManager.notificationOn) {
+            Log.d("알림", "댓글/답글 알림이 꺼져있어서 무시됨")
+            return
+        }
+
         val notificationId = System.currentTimeMillis().toInt()
         val title = if (type == "reply") "$sender 님이 답글을 남겼습니다" else "$sender 님이 댓글을 남겼습니다"
         val body = "앱 내 알림센터에서 확인하세요"
@@ -202,7 +298,6 @@ class MainpageActivity : AppCompatActivity() {
             Log.e("MainpageActivity", "알림 전송 실패: 권한 부족", e)
         }
     }
-
     fun getRotationDateRange(): String {
         val today = java.util.Calendar.getInstance()
 
@@ -218,5 +313,6 @@ class MainpageActivity : AppCompatActivity() {
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
         return "${sdf.format(startDate)} ~ ${sdf.format(endDate)}"
     }
+
 
 }
