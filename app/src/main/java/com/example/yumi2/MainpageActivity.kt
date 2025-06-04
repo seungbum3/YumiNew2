@@ -54,6 +54,7 @@ class MainpageActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         com.example.yumi2.alarm.util.AppNotificationManager.loadNotificationSetting(this)
         setContentView(R.layout.mainpage)
+        SettingsActivity.applyUserTheme(this)
 
         val rotationButton: Button = findViewById(R.id.Champion_rotation)
         rotationButton.text = "이번주 로테이션 챔피언 ( ${getRotationDateRange()} )"

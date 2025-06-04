@@ -34,6 +34,7 @@ class SettingsActivity : AppCompatActivity() {
             "회원탈퇴"
         )
 
+
         for (i in settingTexts.indices) {
             val itemView = layoutInflater.inflate(R.layout.item_setting, settingsContainer, false)
             val params = LinearLayout.LayoutParams(
@@ -135,28 +136,30 @@ class SettingsActivity : AppCompatActivity() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_theme_setting, null)
         val switchDark = dialogView.findViewById<SwitchCompat>(R.id.switchDarkMode)
 
-        // 1. SharedPreferences에서 현재 테마 상태 불러오기
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: "guest"
-        val prefs = getSharedPreferences("settings_$uid", MODE_PRIVATE)
-        val isDark = prefs.getBoolean("dark_mode", false)
-        switchDark.isChecked = isDark
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
 
-        // 2. 토글 변경 시 테마 적용 & 저장
+        db.collection("user_profiles").document(uid)
+            .get()
+            .addOnSuccessListener { doc ->
+                val themeMode = doc.getString("themeMode") ?: "light"
+                switchDark.isChecked = (themeMode == "dark")
+            }
+
         switchDark.setOnCheckedChangeListener { _, checked ->
-            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+            val themeMode = if (checked) "dark" else "light"
+            AppCompatDelegate.setDefaultNightMode(
                 if (checked) AppCompatDelegate.MODE_NIGHT_YES
                 else AppCompatDelegate.MODE_NIGHT_NO
             )
-            prefs.edit().putBoolean("dark_mode", checked).apply()
+            db.collection("user_profiles").document(uid)
+                .update("themeMode", themeMode)
         }
 
-        // 3. 바텀시트로 띄우기
-        val sheet = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val sheet = BottomSheetDialog(this)
         sheet.setContentView(dialogView)
         sheet.show()
     }
-
-
     private fun performWithdrawal() {
         val auth = FirebaseAuth.getInstance()
         val user = auth.currentUser
@@ -223,4 +226,23 @@ class SettingsActivity : AppCompatActivity() {
             resources.displayMetrics
         ).toInt()
     }
-}
+
+        companion object {
+            fun applyUserTheme(context: android.content.Context) {
+                val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                db.collection("user_profiles").document(uid)
+                    .get()
+                    .addOnSuccessListener { doc ->
+                        val themeMode = doc.getString("themeMode") ?: "light"
+                        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                            if (themeMode == "dark")
+                                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                            else
+                                androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+                        )
+                    }
+            }
+        }
+
+    }
