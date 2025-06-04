@@ -26,6 +26,7 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
+
             <!-- 프로필 이미지 -->
             <ImageView
                 android:id="@+id/profileImage"
@@ -83,6 +84,21 @@
     </androidx.cardview.widget.CardView>
 
     <!-- 설정 아이콘 및 텍스트 -->
+
+    <Button
+        android:id="@+id/btnAddFriend"
+        android:layout_width="120dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="16dp"
+        android:backgroundTint="#80929F"
+        android:text="친구추가"
+        android:textColor="@android:color/white"
+        android:textSize="10sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/profileCard"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:id="@+id/settingsLayout"
         android:layout_width="wrap_content"

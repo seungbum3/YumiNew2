@@ -23,11 +23,6 @@
             android:name=".comment.TempPostsActivity"
             android:exported="false" />
         <activity
-            android:name=".ThemeSettingsActivity"
-            android:exported="false"
-            android:label="테마 설정"
-            android:theme="@style/Theme.yumi2"/>
-        <activity
             android:name=".alarm.NotificationActivity"
             android:exported="false" />
         <activity

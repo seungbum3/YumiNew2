@@ -214,37 +214,34 @@ class ChatActivity : AppCompatActivity() {
         messageRef.set(messageData)
             .addOnSuccessListener {
                 Log.d("ChatActivity", "✅ 메시지 전송 성공: $message")
-
-                // 🔴 (1) 상대방 알림 도큐먼트 생성
-                // friendId: 채팅 상대 UID (상단에서 이미 할당되어 있음)
-                // senderId: 내 UID
-                if (friendId.isNotEmpty() && senderId != friendId) { // 내 메시지면 X, 상대방에만 알림 생성
-                    val myNickname = "" // 🔵 내 닉네임 불러오고 싶으면 여기서 Firestore user_profiles에서 가져와서 대입
-                    val notification = hashMapOf(
-                        "senderUid" to senderId,
-                        "senderNickname" to myNickname, // ex) "나"
-                        "type" to "chat",
-                        "message" to message,
-                        "timestamp" to System.currentTimeMillis(),
-                        "isRead" to false,
-                        "chatId" to chatId
-                    )
-                    // 🔵 내 닉네임까지 넣으려면 Firestore에서 한번 불러오고 알림 저장!
-                    FirebaseFirestore.getInstance()
-                        .collection("user_profiles")
-                        .document(senderId)
+                if (friendId.isNotEmpty() && senderId != friendId) {
+                    val db = FirebaseFirestore.getInstance()
+                    db.collection("user_profiles").document(friendId)
                         .get()
                         .addOnSuccessListener { doc ->
-                            val nickname = doc.getString("nickname") ?: "알 수 없음"
-                            notification["senderNickname"] = nickname
-
-                            db.collection("users").document(friendId)
-                                .collection("notifications")
-                                .add(notification)
+                            val notificationOn = doc.getBoolean("notificationOn") ?: true
+                            if (notificationOn) {
+                                val notification = hashMapOf(
+                                    "senderUid" to senderId,
+                                    "senderNickname" to "", // 아래에서 추가
+                                    "type" to "chat",
+                                    "message" to message,
+                                    "timestamp" to System.currentTimeMillis(),
+                                    "isRead" to false,
+                                    "chatId" to chatId
+                                )
+                                db.collection("user_profiles").document(senderId)
+                                    .get()
+                                    .addOnSuccessListener { senderDoc ->
+                                        val nickname = senderDoc.getString("nickname") ?: "알 수 없음"
+                                        notification["senderNickname"] = nickname
+                                        db.collection("users").document(friendId)
+                                            .collection("notifications")
+                                            .add(notification)
+                                    }
+                            }
                         }
                 }
-                // ---- 알림 끝 ----
-
                 runOnUiThread {
                     chatAdapter.updateMessages(messages)
                     chatRecyclerView.scrollToPosition(messages.size - 1)

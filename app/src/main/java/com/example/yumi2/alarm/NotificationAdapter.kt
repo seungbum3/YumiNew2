@@ -38,15 +38,42 @@ class NotificationAdapter(
         val ctx = holder.itemView.context
 
         holder.senderNickname.text = n.senderNickname
-
-        // 알림 종류별로 제목 다르게 표시
-        holder.title.text = when (n.type) {
-            "chat" -> "채팅이 도착했습니다"
-            "reply" -> "답글을 달았습니다"
-            else -> "댓글을 달았습니다"
-        }
         holder.time.text = getRelativeTime(n.timestamp)
 
+        // 1. 알림 종류별 커스텀 텍스트
+        when (n.type) {
+            "chat" -> {
+                // 채팅 내용 7글자만, 초과시 ... 처리
+                val msg = n.message ?: ""
+                val preview = if (msg.length > 7) msg.take(7) + "..." else msg
+                holder.title.text = "\"$preview\" 채팅이 도착했습니다"
+            }
+            "comment", "reply" -> {
+                // postId로 Firestore에서 게시글 제목 가져오기
+                if (!n.postId.isNullOrEmpty()) {
+                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("posts").document(n.postId)
+                        .get()
+                        .addOnSuccessListener { doc ->
+                            val postTitle = doc.getString("title") ?: "알 수 없음"
+                            holder.title.text = "\"$postTitle\"에서 댓글을 달았습니다"
+                        }
+                        .addOnFailureListener {
+                            holder.title.text = "댓글을 달았습니다"
+                        }
+                } else {
+                    holder.title.text = "댓글을 달았습니다"
+                }
+            }
+            "friend_request" -> {
+                holder.title.text = "친구 요청이 도착했습니다"
+            }
+            else -> {
+                holder.title.text = "알림이 도착했습니다"
+            }
+        }
+
+        // 🔻 클릭 리스너 등은 기존 코드 유지 (아래 그대로)
         holder.profileImage.setOnClickListener {
             val intent = Intent(ctx, MyPageActivity::class.java)
             intent.putExtra("uid", n.senderUid)
@@ -58,25 +85,31 @@ class NotificationAdapter(
             ctx.startActivity(intent)
         }
 
-        // 3. 알림 전체 클릭
         holder.itemView.setOnClickListener {
-            if (n.type == "chat" && n.chatId != null) {
-                // 채팅 알림일 때 → 채팅방으로 이동
-                val intent = Intent(ctx, ChatActivity::class.java).apply {
-                    putExtra("chatId", n.chatId)
-                    putExtra("friendId", n.senderUid)
-                    putExtra("friendNickname", n.senderNickname)
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            when {
+                n.type == "chat" && n.chatId != null -> {
+                    val intent = Intent(ctx, ChatActivity::class.java).apply {
+                        putExtra("chatId", n.chatId)
+                        putExtra("friendId", n.senderUid)
+                        putExtra("friendNickname", n.senderNickname)
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+                    ctx.startActivity(intent)
                 }
-                ctx.startActivity(intent)
-            } else {
-                // 댓글/답글 알림일 때 → 게시글로 이동
-                val intent = Intent(ctx, MainActivity::class.java).apply {
-                    putExtra("targetPostId", n.postId)
-                    n.commentId?.let { cid -> putExtra("targetCommentId", cid) }
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                n.type == "friend_request" -> {
+                    val intent = Intent(ctx, com.example.yumi2.FriendRequestActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+                    ctx.startActivity(intent)
                 }
-                ctx.startActivity(intent)
+                else -> {
+                    val intent = Intent(ctx, MainActivity::class.java).apply {
+                        putExtra("targetPostId", n.postId)
+                        n.commentId?.let { cid -> putExtra("targetCommentId", cid) }
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+                    ctx.startActivity(intent)
+                }
             }
         }
     }

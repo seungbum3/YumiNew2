@@ -110,9 +110,7 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
         super.onStart()
 
         val myUid = FirebaseAuth.getInstance().currentUser?.uid
-        // 알림에서 넘어온 타겟 uid(=남의 프로필)
         val targetUid = intent.getStringExtra("uid")
-
         val uidToShow = targetUid ?: myUid
 
         if (uidToShow.isNullOrEmpty()) {
@@ -131,7 +129,61 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
         val btnProfileEdit = findViewById<Button>(R.id.btnProfileEdit)
         btnProfileEdit.visibility =
             if (targetUid == null || targetUid == myUid) View.VISIBLE else View.GONE
+
+        // 👉 친구추가 버튼 표시 로직
+        val btnAddFriend = findViewById<Button>(R.id.btnAddFriend)
+        btnAddFriend.visibility = View.GONE // 기본은 숨김
+
+        if (targetUid != null && targetUid != myUid && myUid != null) {
+            db.collection("users").document(myUid)
+                .collection("friends").document(targetUid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    if (!doc.exists()) {
+                        // 친구가 아니면 버튼 보여주기
+                        btnAddFriend.visibility = View.VISIBLE
+                        btnAddFriend.setOnClickListener {
+                            sendFriendRequest(myUid, targetUid)
+                        }
+                    } else {
+                        btnAddFriend.visibility = View.GONE
+                    }
+                }
+        }
     }
+
+    private fun sendFriendRequest(fromUid: String, toUid: String) {
+        val db = FirebaseFirestore.getInstance()
+        val requestRef = db.collection("users").document(toUid)
+            .collection("friend_requests").document(fromUid)
+
+        val data = mapOf(
+            "senderUid" to fromUid,
+            "receiverUid" to toUid,
+            "timestamp" to System.currentTimeMillis()
+        )
+        requestRef.set(data).addOnSuccessListener {
+            // 내 닉네임 가져오기
+            db.collection("user_profiles").document(fromUid).get()
+                .addOnSuccessListener { doc ->
+                    val senderNickname = doc.getString("nickname") ?: "알 수 없음"
+                    db.collection("users").document(toUid)
+                        .collection("notifications")
+                        .add(
+                            mapOf(
+                                "type" to "friend_request",
+                                "senderUid" to fromUid,
+                                "senderNickname" to senderNickname,
+                                "timestamp" to System.currentTimeMillis()
+                            )
+                        )
+                }
+            // 안내 메시지(Toast 등)
+        }
+    }
+
+
+
 
 
     private fun refreshProfileUI(nickname: String, bio: String, imageUrl: String?) {
@@ -196,6 +248,7 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
                     friendData["id"] = friendId
                     friendsList.add(friendData as HashMap<String, String>)
                 }
+                Log.d("MyPageActivity", "🔵 friendsList: $friendsList") // 추가!
 
                 runOnUiThread {
                     if (friendsList.isEmpty()) {

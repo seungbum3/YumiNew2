@@ -182,10 +182,29 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
                         }.addOnSuccessListener {
                             sentRequests.add(userId)
                             adapter.notifyDataSetChanged()
+
+                            // 1. 내 닉네임 가져오기
+                            db.collection("user_profiles").document(uid).get()
+                                .addOnSuccessListener { document ->
+                                    val myNickname = document.getString("nickname") ?: "알 수 없음"
+
+                                    // 🔥 알림 설정 ON일 때만 알림 문서 추가
+                                    if (com.example.yumi2.alarm.util.AppNotificationManager.notificationOn) {
+                                        val notif = hashMapOf(
+                                            "type" to "friend_request",
+                                            "senderUid" to uid,
+                                            "senderNickname" to myNickname,
+                                            "timestamp" to System.currentTimeMillis()
+                                        )
+                                        db.collection("users").document(userId)
+                                            .collection("notifications")
+                                            .add(notif)
+                                    }
+                                }
+
                         }
                     }
                 }
             }
     }
 }
-
