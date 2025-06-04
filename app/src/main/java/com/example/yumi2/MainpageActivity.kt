@@ -180,7 +180,7 @@ class MainpageActivity : AppCompatActivity() {
             return
         }
 
-        val notificationId = System.currentTimeMillis().toInt()
+        val notificationId = 100 // 항상 같은 ID 사용
         val title = if (type == "reply") "$sender 님이 답글을 남겼습니다" else "$sender 님이 댓글을 남겼습니다"
         val body = "앱 내 알림센터에서 확인하세요"
 
