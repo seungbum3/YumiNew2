@@ -13,7 +13,8 @@ class CommentAdapter(
     private val comments: List<Comment>,
     private val replyClickListener: (Comment) -> Unit
 ) : RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
-
+    // 맨 위 클래스 정의부분에 추가
+    var onAddFriendClick: ((uid: String, nickname: String?) -> Unit)? = null
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_comment, parent, false)
@@ -24,7 +25,6 @@ class CommentAdapter(
         val comment = comments[position]
         holder.nicknameText.text = comment.nickname ?: "알 수 없음"
         holder.commentText.text = comment.text
-        // 여기서 기존 날짜 포맷팅 대신 getRelativeTime() 함수 사용
         holder.commentTimestamp.text = getRelativeTime(comment.timestamp)
 
         // "답글달기" 버튼 처리
@@ -32,9 +32,35 @@ class CommentAdapter(
         holder.replyText.setOnClickListener {
             replyClickListener.invoke(comment)
         }
+        holder.optionsButton.setOnClickListener { view ->
+            val popup = android.widget.PopupMenu(view.context, view)
+            popup.menuInflater.inflate(R.menu.comment_options_menu, popup.menu)
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.action_add_friend -> {
+                        // 콜백 실행 (3번에서 이 함수 구현)
+                        if (comment.uid != null) {
+                            onAddFriendClick?.invoke(comment.uid, comment.nickname)
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
 
-        // 답글들을 replyContainer에 동적으로 추가
-        holder.replyContainer.removeAllViews()  // 기존 답글 초기화
+
+        // 1️⃣ 닉네임 클릭 시 프로필 화면 이동
+        holder.nicknameText.setOnClickListener {
+            val context = holder.itemView.context
+            val intent = android.content.Intent(context, com.example.yumi2.MyPageActivity::class.java)
+            intent.putExtra("uid", comment.uid)  // <- comment.uid로 유저 UID 전달
+            context.startActivity(intent)
+        }
+
+        // 답글 동적 추가 부분은 기존과 동일
+        holder.replyContainer.removeAllViews()
         if (comment.replies.isNotEmpty()) {
             for (reply in comment.replies) {
                 val replyView = LayoutInflater.from(holder.itemView.context)
@@ -45,7 +71,15 @@ class CommentAdapter(
 
                 replyNickname.text = reply.nickname ?: "알 수 없음"
                 replyText.text = reply.text
-                replyTimestamp.text = getRelativeTime(reply.timestamp) // 상대 시간 표시
+                replyTimestamp.text = getRelativeTime(reply.timestamp)
+
+                // 2️⃣ 답글 닉네임도 프로필 이동 지원
+                replyNickname.setOnClickListener {
+                    val context = holder.itemView.context
+                    val intent = android.content.Intent(context, com.example.yumi2.MyPageActivity::class.java)
+                    intent.putExtra("uid", reply.uid)  // <- reply.uid로 유저 UID 전달
+                    context.startActivity(intent)
+                }
 
                 holder.replyContainer.addView(replyView)
             }
@@ -54,8 +88,6 @@ class CommentAdapter(
             holder.replyContainer.visibility = View.GONE
         }
     }
-
-
     override fun getItemCount(): Int = comments.size
 
     inner class CommentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -65,5 +97,6 @@ class CommentAdapter(
         val replyText: TextView = itemView.findViewById(R.id.text_reply)
         // replyContainer는 item_comment.xml 내에 답글들을 담을 LinearLayout의 ID입니다.
         val replyContainer: LinearLayout = itemView.findViewById(R.id.replyContainer)
+        val optionsButton: android.widget.ImageView = itemView.findViewById(R.id.commentOptions)
     }
 }

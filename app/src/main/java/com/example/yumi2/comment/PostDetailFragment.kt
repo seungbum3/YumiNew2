@@ -133,6 +133,10 @@ data class Comment(
             commentEditText.hint = "답글 입력 (@${comment.nickname}에게)"
             commentEditText.requestFocus()
         }
+        // 친구 추가 콜백 연결!
+        commentAdapter.onAddFriendClick = { targetUid, targetNickname ->
+            sendFriendRequestFromDetail(targetUid, targetNickname)
+        }
         commentRecyclerView.adapter = commentAdapter
 
         menuButton = view.findViewById(R.id.menuButton)
@@ -156,7 +160,64 @@ data class Comment(
 
         return view
     }
-    private fun loadPostDetail() {
+
+        private fun sendFriendRequestFromDetail(targetUid: String, targetNickname: String?) {
+            val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+            val db = FirebaseFirestore.getInstance()
+
+            // 1. 이미 친구인지 확인
+            db.collection("users").document(myUid).collection("friends").document(targetUid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    if (doc.exists()) {
+                        Toast.makeText(context, "이미 친구입니다!", Toast.LENGTH_SHORT).show()
+                        return@addOnSuccessListener
+                    }
+                    // 2. 친구 요청 중복 확인 (이미 요청했는지)
+                    db.collection("users").document(targetUid)
+                        .collection("friend_requests").document(myUid)
+                        .get()
+                        .addOnSuccessListener { reqDoc ->
+                            if (reqDoc.exists()) {
+                                Toast.makeText(context, "이미 친구 요청을 보냈어요!", Toast.LENGTH_SHORT).show()
+                                return@addOnSuccessListener
+                            }
+
+                            // 3. 내 닉네임 조회 후 요청/알림 전송
+                            db.collection("user_profiles").document(myUid).get()
+                                .addOnSuccessListener { profileDoc ->
+                                    val myNickname = profileDoc.getString("nickname") ?: "알 수 없음"
+
+                                    // 친구 요청 저장
+                                    db.collection("users").document(targetUid)
+                                        .collection("friend_requests").document(myUid)
+                                        .set(
+                                            mapOf(
+                                                "senderUid" to myUid,
+                                                "receiverUid" to targetUid,
+                                                "timestamp" to System.currentTimeMillis()
+                                            )
+                                        ).addOnSuccessListener {
+                                            // 알림 전송
+                                            db.collection("users").document(targetUid)
+                                                .collection("notifications")
+                                                .add(
+                                                    mapOf(
+                                                        "type" to "friend_request",
+                                                        "senderUid" to myUid,
+                                                        "senderNickname" to myNickname,
+                                                        "timestamp" to System.currentTimeMillis()
+                                                    )
+                                                )
+                                            Toast.makeText(context, "친구 요청을 보냈습니다!", Toast.LENGTH_SHORT).show()
+                                        }
+                                }
+                        }
+                }
+        }
+
+
+        private fun loadPostDetail() {
         if (postId.isEmpty()) return
 
         firestore.collection("posts").document(postId)

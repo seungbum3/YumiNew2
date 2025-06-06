@@ -36,8 +36,8 @@
     <!-- 옵션 메뉴 버튼 (점 3개) -->
     <ImageView
         android:id="@+id/optionsButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_more_vert"
-        android:contentDescription="옵션 메뉴" />
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="옵션 메뉴"
+        android:src="@drawable/ic_more_vert" />
 </LinearLayout>

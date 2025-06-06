@@ -177,9 +177,19 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
                     } else {
                         // 아직 요청 보내지 않은 상태이면 요청 보내기
                         db.runBatch { batch ->
-                            batch.set(mySentRef, mapOf("to" to userId, "status" to "pending"))
-                            batch.set(theirReqRef, mapOf("from" to uid, "status" to "pending"))
-                        }.addOnSuccessListener {
+                            batch.set(mySentRef, mapOf(
+                                "senderUid" to uid,
+                                "receiverUid" to userId,
+                                "status" to "pending",
+                                "timestamp" to System.currentTimeMillis()
+                            ))
+                            batch.set(theirReqRef, mapOf(
+                                "senderUid" to uid,
+                                "receiverUid" to userId,
+                                "status" to "pending",
+                                "timestamp" to System.currentTimeMillis()
+                            ))
+                    }.addOnSuccessListener {
                             sentRequests.add(userId)
                             adapter.notifyDataSetChanged()
 

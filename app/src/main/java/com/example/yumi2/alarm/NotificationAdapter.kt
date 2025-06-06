@@ -42,6 +42,9 @@ class NotificationAdapter(
 
         // 1. 알림 종류별 커스텀 텍스트
         when (n.type) {
+            "friend_request_result" -> {
+                holder.title.text = n.message // 수락/거절 결과 메시지 그대로 표시
+            }
             "chat" -> {
                 // 채팅 내용 7글자만, 초과시 ... 처리
                 val msg = n.message ?: ""
@@ -113,5 +116,4 @@ class NotificationAdapter(
             }
         }
     }
-
 }
