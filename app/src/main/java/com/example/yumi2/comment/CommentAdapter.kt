@@ -70,14 +70,11 @@ class CommentAdapter(
                                 true
                             }
                             R.id.menu_delete -> {
-                                val db = FirebaseFirestore.getInstance()
-                                db.collection("users").document(myUid)
-                                    .collection("friends").document(targetUid).delete()
-                                db.collection("users").document(targetUid)
-                                    .collection("friends").document(myUid).delete()
+                                deleteFriendAndChats(myUid, targetUid, context)
                                 Toast.makeText(context, "친구를 삭제했습니다.", Toast.LENGTH_SHORT).show()
                                 true
                             }
+
                             R.id.menu_block -> {
                                 val db = FirebaseFirestore.getInstance()
                                 // 1. 차단 컬렉션에 추가
@@ -221,6 +218,34 @@ class CommentAdapter(
                 )
                 newChatRef.set(chatData)
                     .addOnSuccessListener { callback(newChatRef.id) }
+            }
+    }
+    private fun deleteFriendAndChats(currentUserId: String, friendId: String, context: android.content.Context, onComplete: (() -> Unit)? = null) {
+        val db = FirebaseFirestore.getInstance()
+        val batch = db.batch()
+
+        val myFriendRef = db.collection("users").document(currentUserId).collection("friends").document(friendId)
+        val theirFriendRef = db.collection("users").document(friendId).collection("friends").document(currentUserId)
+        batch.delete(myFriendRef)
+        batch.delete(theirFriendRef)
+
+        db.collection("chats")
+            .whereEqualTo("users", listOf(currentUserId, friendId))
+            .get()
+            .addOnSuccessListener { docs1 ->
+                db.collection("chats")
+                    .whereEqualTo("users", listOf(friendId, currentUserId))
+                    .get()
+                    .addOnSuccessListener { docs2 ->
+                        val allDocs = docs1.documents + docs2.documents
+                        allDocs.forEach { doc ->
+                            doc.reference.delete()
+                        }
+                        batch.commit().addOnSuccessListener {
+                            Toast.makeText(context, "친구 및 채팅 기록 삭제 완료", Toast.LENGTH_SHORT).show()
+                            onComplete?.invoke()
+                        }
+                    }
             }
     }
 

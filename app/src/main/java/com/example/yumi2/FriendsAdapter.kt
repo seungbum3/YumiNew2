@@ -120,7 +120,14 @@ class FriendsAdapter(
                         AlertDialog.Builder(holder.itemView.context)
                             .setTitle("친구 삭제")
                             .setMessage("${holder.friendName.text}님을 친구 목록에서 삭제하시겠습니까?")
-                            .setPositiveButton("삭제") { _, _ -> deleteFriend(friendId) }
+                            .setPositiveButton("삭제") { _, _ ->
+                                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setPositiveButton
+                                deleteFriendAndChats(currentUserId, friendId, holder.itemView.context) {
+                                    // UI 업데이트
+                                    val newList = filteredList.filter { it["id"] != friendId }
+                                    updateData(newList)
+                                }
+                            }
                             .setNegativeButton("취소", null)
                             .show()
                         true
@@ -249,5 +256,35 @@ class FriendsAdapter(
         }.addOnFailureListener { e ->
             Log.e("FriendsAdapter", "❌ 차단 실패: $friendId", e)
         }
+    }
+    private fun deleteFriendAndChats(currentUserId: String, friendId: String, context: android.content.Context, onComplete: (() -> Unit)? = null) {
+        val db = FirebaseFirestore.getInstance()
+        val batch = db.batch()
+
+        // 1. 친구관계 삭제 (양쪽)
+        val myFriendRef = db.collection("users").document(currentUserId).collection("friends").document(friendId)
+        val theirFriendRef = db.collection("users").document(friendId).collection("friends").document(currentUserId)
+        batch.delete(myFriendRef)
+        batch.delete(theirFriendRef)
+
+        // 2. 채팅방 삭제 (users 배열에 두 명만 포함된 채팅방)
+        db.collection("chats")
+            .whereEqualTo("users", listOf(currentUserId, friendId))
+            .get()
+            .addOnSuccessListener { docs1 ->
+                db.collection("chats")
+                    .whereEqualTo("users", listOf(friendId, currentUserId))
+                    .get()
+                    .addOnSuccessListener { docs2 ->
+                        val allDocs = docs1.documents + docs2.documents
+                        allDocs.forEach { doc ->
+                            doc.reference.delete()
+                        }
+                        batch.commit().addOnSuccessListener {
+                            android.widget.Toast.makeText(context, "친구 및 채팅 기록 삭제 완료", android.widget.Toast.LENGTH_SHORT).show()
+                            onComplete?.invoke()
+                        }
+                    }
+            }
     }
 }
