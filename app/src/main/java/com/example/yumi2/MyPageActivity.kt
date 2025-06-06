@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -154,37 +155,41 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
 
     private fun sendFriendRequest(fromUid: String, toUid: String) {
         val db = FirebaseFirestore.getInstance()
-        val requestRef = db.collection("users").document(toUid)
-            .collection("friend_requests").document(fromUid)
-
         val data = mapOf(
             "senderUid" to fromUid,
             "receiverUid" to toUid,
             "timestamp" to System.currentTimeMillis()
         )
-        requestRef.set(data).addOnSuccessListener {
-            // 내 닉네임 가져오기
-            db.collection("user_profiles").document(fromUid).get()
-                .addOnSuccessListener { doc ->
-                    val senderNickname = doc.getString("nickname") ?: "알 수 없음"
-                    db.collection("users").document(toUid)
-                        .collection("notifications")
-                        .add(
-                            mapOf(
-                                "type" to "friend_request",
-                                "senderUid" to fromUid,
-                                "senderNickname" to senderNickname,
-                                "timestamp" to System.currentTimeMillis()
-                            )
+        // 1. 친구 요청 보내기 (상대방 friend_requests에 저장)
+        db.collection("users").document(toUid)
+            .collection("friend_requests").document(fromUid)
+            .set(data)
+            .addOnSuccessListener {
+                // 2. 내 닉네임 가져와서 알림까지 추가
+                db.collection("user_profiles").document(fromUid).get()
+                    .addOnSuccessListener { doc ->
+                        val senderNickname = doc.getString("nickname") ?: "알 수 없음"
+                        val notif = hashMapOf(
+                            "type" to "friend_request",
+                            "senderUid" to fromUid,
+                            "senderNickname" to senderNickname,
+                            "timestamp" to System.currentTimeMillis()
                         )
+                        db.collection("users").document(toUid)
+                            .collection("notifications")
+                            .add(notif)
+                    }
+                // 안내 메시지(Toast 등)
+                runOnUiThread {
+                    Toast.makeText(this, "친구 요청을 보냈습니다!", Toast.LENGTH_SHORT).show()
                 }
-            // 안내 메시지(Toast 등)
-        }
+            }
+            .addOnFailureListener { e ->
+                runOnUiThread {
+                    Toast.makeText(this, "친구 요청 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
     }
-
-
-
-
 
     private fun refreshProfileUI(nickname: String, bio: String, imageUrl: String?) {
         runOnUiThread {

@@ -126,95 +126,39 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
     }
 
     override fun onSendRequest(userId: String) {
-        val uid = FirebaseAuth.getInstance().uid!!
+        val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val targetUid = userId
         val db = FirebaseFirestore.getInstance()
-        val mySentRef = db.collection("users").document(uid)
-            .collection("sent_requests").document(userId)
-        val theirReqRef = db.collection("users").document(userId)
-            .collection("friend_requests").document(uid)
-        val myReqRef = db.collection("users").document(uid)
-            .collection("friend_requests").document(userId)
+        val data = mapOf(
+            "senderUid" to myUid,
+            "receiverUid" to targetUid,
+            "timestamp" to System.currentTimeMillis()
+        )
 
-        // 내 friend_requests 컬렉션에 상대방의 요청이 이미 있는지 확인
-        db.collection("users").document(uid)
-            .collection("friend_requests").document(userId)
-            .get().addOnSuccessListener { document ->
-                if (document.exists()) {
-                    // 상대방이 먼저 요청 보냈다면 바로 친구 추가 처리
-                    db.runBatch { batch ->
-                        // 양쪽의 friends 컬렉션에 서로 추가
-                        batch.set(
-                            db.collection("users").document(uid)
-                                .collection("friends").document(userId),
-                            mapOf("id" to userId)
+        // 1. 친구 요청 보내기 (상대방 friend_requests에 저장)
+        db.collection("users").document(targetUid)
+            .collection("friend_requests").document(myUid)
+            .set(data)
+            .addOnSuccessListener {
+                // 2. 내 닉네임 가져와서 알림까지 추가로 전송
+                db.collection("user_profiles").document(myUid).get()
+                    .addOnSuccessListener { profileDoc ->
+                        val myNickname = profileDoc.getString("nickname") ?: "알 수 없음"
+                        val notif = hashMapOf(
+                            "type" to "friend_request",
+                            "senderUid" to myUid,
+                            "senderNickname" to myNickname,
+                            "timestamp" to System.currentTimeMillis()
                         )
-                        batch.set(
-                            db.collection("users").document(userId)
-                                .collection("friends").document(uid),
-                            mapOf("id" to uid)
-                        )
-                        // 내 friend_requests와 상대방의 sent_requests에서 해당 요청 삭제
-                        batch.delete(myReqRef)
-                        batch.delete(
-                            db.collection("users").document(userId)
-                                .collection("sent_requests").document(uid)
-                        )
-                    }.addOnSuccessListener {
-                        // UI 업데이트 등 추가 처리 가능
-                    }.addOnFailureListener {
-                        // 에러 처리
+                        db.collection("users").document(targetUid)
+                            .collection("notifications")
+                            .add(notif)
                     }
-                } else {
-                    // 내 sent_requests에 이미 요청이 있는 경우 → 요청 취소 처리
-                    if (sentRequests.contains(userId)) {
-                        db.runBatch { batch ->
-                            batch.delete(mySentRef)
-                            batch.delete(theirReqRef)
-                        }.addOnSuccessListener {
-                            sentRequests.remove(userId)
-                            adapter.notifyDataSetChanged()
-                        }
-                    } else {
-                        // 아직 요청 보내지 않은 상태이면 요청 보내기
-                        db.runBatch { batch ->
-                            batch.set(mySentRef, mapOf(
-                                "senderUid" to uid,
-                                "receiverUid" to userId,
-                                "status" to "pending",
-                                "timestamp" to System.currentTimeMillis()
-                            ))
-                            batch.set(theirReqRef, mapOf(
-                                "senderUid" to uid,
-                                "receiverUid" to userId,
-                                "status" to "pending",
-                                "timestamp" to System.currentTimeMillis()
-                            ))
-                    }.addOnSuccessListener {
-                            sentRequests.add(userId)
-                            adapter.notifyDataSetChanged()
-
-                            // 1. 내 닉네임 가져오기
-                            db.collection("user_profiles").document(uid).get()
-                                .addOnSuccessListener { document ->
-                                    val myNickname = document.getString("nickname") ?: "알 수 없음"
-
-                                    // 🔥 알림 설정 ON일 때만 알림 문서 추가
-                                    if (com.example.yumi2.alarm.util.AppNotificationManager.notificationOn) {
-                                        val notif = hashMapOf(
-                                            "type" to "friend_request",
-                                            "senderUid" to uid,
-                                            "senderNickname" to myNickname,
-                                            "timestamp" to System.currentTimeMillis()
-                                        )
-                                        db.collection("users").document(userId)
-                                            .collection("notifications")
-                                            .add(notif)
-                                    }
-                                }
-
-                        }
-                    }
-                }
+                // (여기에 안내 Toast 등 추가)
+            }
+            .addOnFailureListener { e ->
+                // 에러 안내(Toast 등)
             }
     }
+
 }
