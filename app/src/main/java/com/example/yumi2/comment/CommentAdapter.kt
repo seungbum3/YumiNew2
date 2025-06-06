@@ -69,7 +69,34 @@ class CommentAdapter(
                                 }
                                 true
                             }
-
+                            R.id.menu_delete -> {
+                                val db = FirebaseFirestore.getInstance()
+                                db.collection("users").document(myUid)
+                                    .collection("friends").document(targetUid).delete()
+                                db.collection("users").document(targetUid)
+                                    .collection("friends").document(myUid).delete()
+                                Toast.makeText(context, "친구를 삭제했습니다.", Toast.LENGTH_SHORT).show()
+                                true
+                            }
+                            R.id.menu_block -> {
+                                val db = FirebaseFirestore.getInstance()
+                                // 1. 차단 컬렉션에 추가
+                                db.collection("users").document(myUid)
+                                    .collection("blocked").document(targetUid)
+                                    .set(mapOf("id" to targetUid))
+                                    .addOnSuccessListener {
+                                        // 2. 친구 목록에서 양쪽 삭제
+                                        db.collection("users").document(myUid)
+                                            .collection("friends").document(targetUid).delete()
+                                        db.collection("users").document(targetUid)
+                                            .collection("friends").document(myUid).delete()
+                                        Toast.makeText(context, "차단 완료!", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(context, "차단 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                true
+                            }
                             R.id.action_add_friend -> {
                                 // 친구 추가 코드 (기존)
                                 val db = FirebaseFirestore.getInstance()
