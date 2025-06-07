@@ -1,10 +1,10 @@
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="72dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="8dp">
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical">
 
-    <!-- 순위 -->
     <TextView
         android:id="@+id/tvRank"
         android:layout_width="32dp"
@@ -12,75 +12,51 @@
         android:text="1"
         android:textSize="16sp"
         android:textColor="#000000"
-        android:gravity="center"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        android:gravity="center" />
 
-    <!-- 챔피언 이미지 -->
     <ImageView
         android:id="@+id/imgChampionIcon"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginStart="8dp"
-        android:scaleType="centerCrop"
-        app:layout_constraintStart_toEndOf="@id/tvRank"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        android:layout_marginStart="12dp"
+        android:scaleType="centerCrop" />
 
-    <!-- 챔피언 이름 -->
+    <!-- 이름에 weight="1"을 줘서 오른쪽으로 밀어줌 -->
     <TextView
         android:id="@+id/tvChampionName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
         android:text="챔피언 이름"
         android:textSize="16sp"
-        android:textColor="#000000"
-        android:maxLines="1"
-        android:ellipsize="end"
-        app:layout_constraintStart_toEndOf="@id/imgChampionIcon"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/tvWinRate"/>
+        android:textColor="#000000" />
 
-    <!-- 승률 -->
+    <!-- 승률/픽률/밴률 -->
     <TextView
         android:id="@+id/tvWinRate"
         android:layout_width="54dp"
         android:layout_height="wrap_content"
-        android:text="승률: 55%"
+        android:text="54.4%"
         android:textColor="#476EFF"
         android:textSize="13sp"
-        android:gravity="end"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/tvPickRate"/>
+        android:gravity="center" />
 
-    <!-- 픽률 -->
     <TextView
         android:id="@+id/tvPickRate"
         android:layout_width="54dp"
         android:layout_height="wrap_content"
-        android:text="픽률: 8.2%"
+        android:text="5.21%"
         android:textColor="#23B700"
         android:textSize="13sp"
-        android:gravity="end"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/tvBanRate"/>
+        android:gravity="center" />
 
-    <!-- 밴률 -->
     <TextView
         android:id="@+id/tvBanRate"
         android:layout_width="54dp"
         android:layout_height="wrap_content"
-        android:text="밴률: 16%"
+        android:text="1.8%"
         android:textColor="#FF003C"
         android:textSize="13sp"
-        android:gravity="end"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:gravity="center" />
+</LinearLayout>
