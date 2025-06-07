@@ -1,0 +1,86 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="8dp">
+
+    <!-- 순위 -->
+    <TextView
+        android:id="@+id/tvRank"
+        android:layout_width="32dp"
+        android:layout_height="wrap_content"
+        android:text="1"
+        android:textSize="16sp"
+        android:textColor="#000000"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- 챔피언 이미지 -->
+    <ImageView
+        android:id="@+id/imgChampionIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toEndOf="@id/tvRank"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- 챔피언 이름 -->
+    <TextView
+        android:id="@+id/tvChampionName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="챔피언 이름"
+        android:textSize="16sp"
+        android:textColor="#000000"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toEndOf="@id/imgChampionIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tvWinRate"/>
+
+    <!-- 승률 -->
+    <TextView
+        android:id="@+id/tvWinRate"
+        android:layout_width="54dp"
+        android:layout_height="wrap_content"
+        android:text="승률: 55%"
+        android:textColor="#476EFF"
+        android:textSize="13sp"
+        android:gravity="end"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tvPickRate"/>
+
+    <!-- 픽률 -->
+    <TextView
+        android:id="@+id/tvPickRate"
+        android:layout_width="54dp"
+        android:layout_height="wrap_content"
+        android:text="픽률: 8.2%"
+        android:textColor="#23B700"
+        android:textSize="13sp"
+        android:gravity="end"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tvBanRate"/>
+
+    <!-- 밴률 -->
+    <TextView
+        android:id="@+id/tvBanRate"
+        android:layout_width="54dp"
+        android:layout_height="wrap_content"
+        android:text="밴률: 16%"
+        android:textColor="#FF003C"
+        android:textSize="13sp"
+        android:gravity="end"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
