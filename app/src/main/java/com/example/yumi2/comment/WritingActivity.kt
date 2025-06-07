@@ -203,7 +203,7 @@ class WritingActivity : AppCompatActivity() {
                 "views" to 0,
                 "postId" to postRef.id,
                 "imageUrl" to imageUrl,
-                "uid" to uid,
+                "uid" to FirebaseAuth.getInstance().currentUser?.uid,  // << 꼭 포함!
                 "nickname" to nickname,
                 "hashtags" to hashtagList
             )
@@ -239,7 +239,7 @@ class WritingActivity : AppCompatActivity() {
                 "category" to (editingTempPost?.category ?: currentCategory),
                 "timestamp" to System.currentTimeMillis(),
                 "imageUrl" to imageUrl,
-                "uid" to uid,
+                "uid" to FirebaseAuth.getInstance().currentUser?.uid,  // << 꼭 포함!
                 "nickname" to nickname,
                 "hashtags" to hashtagList
             )
