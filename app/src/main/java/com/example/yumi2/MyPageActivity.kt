@@ -88,6 +88,9 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
                 else -> false
             }
         }
+        findViewById<Button>(R.id.btnViewRecord).setOnClickListener {
+            checkAndStartRecordView()
+        }
 
         val btnProfileEdit = findViewById<Button>(R.id.btnProfileEdit)
         btnProfileEdit.setOnClickListener {
@@ -302,4 +305,64 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
                 Log.e("Firestore", "❌ 즐겨찾기 목록 가져오기 실패", e)
             }
     }
+    private fun checkAndStartRecordView() {
+        val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val targetUid = intent.getStringExtra("uid") ?: myUid
+        val userProfileRef = FirebaseFirestore.getInstance().collection("user_profiles").document(targetUid)
+
+        userProfileRef.get().addOnSuccessListener { doc ->
+            val lolId = doc.getString("lolId")
+            if (targetUid == myUid) {
+                // 내 프로필
+                if (lolId.isNullOrBlank()) {
+                    showAddLolIdDialog { newLolId ->
+                        userProfileRef.update("lolId", newLolId).addOnSuccessListener {
+                            goToNameSearch(newLolId)
+                        }
+                    }
+                } else {
+                    goToNameSearch(lolId)
+                }
+            } else {
+                // 남의 프로필
+                if (lolId.isNullOrBlank()) {
+                    Toast.makeText(this, "전적을 볼 수 없습니다.", Toast.LENGTH_SHORT).show()
+                } else {
+                    goToNameSearch(lolId)
+                }
+            }
+        }
+    }
+
+
+    // LoL 닉네임#태그 입력받는 다이얼로그
+    private fun showAddLolIdDialog(onComplete: (String) -> Unit) {
+        val editText = android.widget.EditText(this)
+        editText.hint = "예) Hide on bush#KR1"
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("LoL 닉네임을 입력하세요")
+            .setView(editText)
+            .setPositiveButton("저장") { _, _ ->
+                val input = editText.text.toString().trim()
+                if (!input.contains("#")) {
+                    Toast.makeText(this, "올바른 형식으로 입력하세요", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                onComplete(input)
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    // NameSearchMainActivity로 이동하는 함수
+    private fun goToNameSearch(lolId: String) {
+        val parts = lolId.split("#")
+        val gameName = parts.getOrNull(0) ?: ""
+        val tagLine = parts.getOrNull(1) ?: ""
+        val intent = Intent(this, NameSearchMainActivity::class.java)
+        intent.putExtra("gameName", gameName)
+        intent.putExtra("tagLine", tagLine)
+        startActivity(intent)
+    }
+
 }

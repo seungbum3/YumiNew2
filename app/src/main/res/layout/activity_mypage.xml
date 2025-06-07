@@ -26,6 +26,20 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
+            <Button
+                android:id="@+id/btnViewRecord"
+                android:layout_width="120dp"
+                android:layout_height="35dp"
+                android:backgroundTint="#80929F"
+                android:text="전적 보기"
+                android:textColor="#E7EBED"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btnProfileEdit"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="1.0"
+                android:layout_marginEnd="8dp"/>
+
 
             <!-- 프로필 이미지 -->
             <ImageView
