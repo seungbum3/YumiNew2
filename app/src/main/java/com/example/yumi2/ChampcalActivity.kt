@@ -99,9 +99,21 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
         itemSlotContainer.removeAllViews()
         repeat(6) {
             val iv = ImageView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(
+                // 1) weight 기반으로 너비 분할
+                val params = LinearLayout.LayoutParams(
                     0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
-                )
+                ).apply {
+                    // 2) 각 슬롯 사이에 4dp 마진 추가
+                    val marginDp = 4f
+                    val marginPx = TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        marginDp,
+                        resources.displayMetrics
+                    ).toInt()
+                    setMargins(marginPx, 0, marginPx, 0)
+                }
+                layoutParams = params
+
                 adjustViewBounds = true
                 scaleType = ImageView.ScaleType.FIT_CENTER
                 setImageResource(R.drawable.placeholder_image)
@@ -367,8 +379,20 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
         itemSlotContainer.removeAllViews()
         for (item in favoriteItems) {
             val imageView = ImageView(this)
-            val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            // 1) params 정의부를 위와 동일하게
+            val params = LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+            ).apply {
+                val marginDp = 4f
+                val marginPx = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    marginDp,
+                    resources.displayMetrics
+                ).toInt()
+                setMargins(marginPx, 0, marginPx, 0)
+            }
             imageView.layoutParams = params
+
             imageView.adjustViewBounds = true
             imageView.scaleType = ImageView.ScaleType.FIT_CENTER
             if (item != null) {

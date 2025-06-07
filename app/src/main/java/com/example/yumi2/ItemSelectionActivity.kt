@@ -1,9 +1,12 @@
 package com.example.yumi2
 
 import android.app.AlertDialog
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
@@ -252,9 +255,27 @@ class ItemSelectionActivity : AppCompatActivity() {
     }
 
     private fun setupSlotRecyclerView() {
-        slotRecyclerView.layoutManager = GridLayoutManager(this, 6)
+        val spanCount = 6
+        slotRecyclerView.layoutManager = GridLayoutManager(this, spanCount)
         slotRecyclerView.adapter = SlotAdapter()
+
+        // 4dp → px
+        val spacingPx = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP, 4f, resources.displayMetrics
+        ).toInt()
+
+        slotRecyclerView.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(
+                outRect: Rect, view: View,
+                parent: RecyclerView, state: RecyclerView.State
+            ) {
+                // 모든 방향에 spacingPx 씩 마진 주기
+                outRect.set(spacingPx, spacingPx, spacingPx, spacingPx)
+            }
+        })
     }
+
+
 
     private fun setupSaveAndLoadButtons(uid: String) {
         val btnSaveSlots = findViewById<Button>(R.id.btnSaveSlots)
