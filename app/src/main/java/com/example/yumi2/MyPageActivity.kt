@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.example.yumi2.comment.MainActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -69,8 +70,12 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
                     finish()
                     true
                 }
-                R.id.category2, R.id.category3 -> {
-                    finish()
+                R.id.category2 -> {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    true
+                }
+                R.id.category3 -> {
+                    startActivity(Intent(this, BanPickMain::class.java))
                     true
                 }
                 R.id.category4 -> true

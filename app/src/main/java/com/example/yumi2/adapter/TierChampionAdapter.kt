@@ -38,11 +38,11 @@ class TierChampionAdapter(
             .placeholder(R.drawable.loading_icon)
             .error(R.drawable.error_image)
             .into(holder.imgChampionIcon)
-        holder.itemView.findViewById<TextView>(R.id.tvWinRate).text = "승률: ${champion.winRate}%"
-        holder.itemView.findViewById<TextView>(R.id.tvPickRate).text = "픽률: ${champion.pickRate}%"
-        holder.itemView.findViewById<TextView>(R.id.tvBanRate).text = "밴률: ${champion.banRate}%"
+        holder.itemView.findViewById<TextView>(R.id.tvWinRate).text = "${champion.winRate}%"
+        holder.itemView.findViewById<TextView>(R.id.tvPickRate).text = "${champion.pickRate}%"
+        holder.itemView.findViewById<TextView>(R.id.tvBanRate).text = "${champion.banRate}%"
 
-    // 로그 출력
+        // 로그 출력
         Log.d("TierChampionAdapter", "Binding [${position + 1}] ${champion.name}, icon: ${champion.iconUrl}")
     }
 
