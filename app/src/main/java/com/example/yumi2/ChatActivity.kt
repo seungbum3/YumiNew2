@@ -13,6 +13,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.yumi2.ChatAdapter
+import com.example.yumi2.ChatMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -199,28 +201,52 @@ class ChatActivity : AppCompatActivity() {
     }
 
 
-    // 메시지 전송 함수
     private fun sendMessage(chatId: String, senderId: String, message: String) {
         val db = FirebaseFirestore.getInstance()
         val messageRef = db.collection("chats").document(chatId).collection("messages").document()
 
         val messageData = hashMapOf(
             "senderId" to senderId,
-            "message" to message, // ✅ Firestore 필드명과 일치
+            "message" to message,
             "timestamp" to com.google.firebase.Timestamp.now()
         )
 
         messageRef.set(messageData)
             .addOnSuccessListener {
                 Log.d("ChatActivity", "✅ 메시지 전송 성공: $message")
-
+                if (friendId.isNotEmpty() && senderId != friendId) {
+                    val db = FirebaseFirestore.getInstance()
+                    db.collection("user_profiles").document(friendId)
+                        .get()
+                        .addOnSuccessListener { doc ->
+                            val notificationOn = doc.getBoolean("notificationOn") ?: true
+                            if (notificationOn) {
+                                val notification = hashMapOf(
+                                    "senderUid" to senderId,
+                                    "senderNickname" to "", // 아래에서 추가
+                                    "type" to "chat",
+                                    "message" to message,
+                                    "timestamp" to System.currentTimeMillis(),
+                                    "isRead" to false,
+                                    "chatId" to chatId
+                                )
+                                db.collection("user_profiles").document(senderId)
+                                    .get()
+                                    .addOnSuccessListener { senderDoc ->
+                                        val nickname = senderDoc.getString("nickname") ?: "알 수 없음"
+                                        notification["senderNickname"] = nickname
+                                        db.collection("users").document(friendId)
+                                            .collection("notifications")
+                                            .add(notification)
+                                    }
+                            }
+                        }
+                }
                 runOnUiThread {
                     chatAdapter.updateMessages(messages)
                     chatRecyclerView.scrollToPosition(messages.size - 1)
                     Log.d("ChatActivity", "📢 RecyclerView 업데이트 완료")
                 }
-
-
             }
             .addOnFailureListener { e ->
                 Log.e("ChatActivity", "❌ 메시지 전송 실패", e)
@@ -238,6 +264,7 @@ class ChatActivity : AppCompatActivity() {
                 Log.e("ChatActivity", "❌ 채팅방 정보 업데이트 실패", e)
             }
     }
+
 
 
     // 채팅 내역 불러오기 함수

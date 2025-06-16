@@ -12,7 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 
 class ChatAdapter(
-    private var messages: MutableList<ChatMessage>, // ✅ 변경 가능하도록 수정
+    private var messages: MutableList<ChatMessage>,
     private val currentUserId: String
 ) : RecyclerView.Adapter<ChatAdapter.ViewHolder>() {
 
@@ -27,14 +27,11 @@ class ChatAdapter(
         return ViewHolder(view, viewType)
     }
 
-
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val message = messages[position]
         holder.messageText.text = message.message
 
-        val previousMessage = if (position > 0) messages[position - 1] else null
         val nextMessage = if (position < messages.size - 1) messages[position + 1] else null
-
         val isLastInSequence = nextMessage == null || nextMessage.senderId != message.senderId ||
                 (nextMessage.timestamp != null && message.timestamp != null &&
                         (nextMessage.timestamp!!.seconds - message.timestamp!!.seconds) > 120)
@@ -42,6 +39,8 @@ class ChatAdapter(
         holder.profileImage?.let { imageView ->
             if (isLastInSequence && message.senderId != currentUserId) {
                 imageView.visibility = View.VISIBLE
+
+                // 유저 프로필 이미지 URL 가져오기
                 FirebaseFirestore.getInstance().collection("user_profiles")
                     .document(message.senderId)
                     .get()
@@ -49,6 +48,7 @@ class ChatAdapter(
                         val profileUrl = document.getString("profileImageUrl")
                         if (!profileUrl.isNullOrEmpty()) {
                             if (profileUrl.startsWith("gs://")) {
+                                // Firebase Storage gs:// → downloadUrl 변환 후 Glide에 전달
                                 FirebaseStorage.getInstance().getReferenceFromUrl(profileUrl)
                                     .downloadUrl
                                     .addOnSuccessListener { uri ->
@@ -59,10 +59,10 @@ class ChatAdapter(
                                     }
                                     .addOnFailureListener { e ->
                                         Log.e("ChatAdapter", "Firebase Storage URL 변환 실패", e)
-                                        imageView.setImageResource(R.drawable.error_image)
+                                        imageView.setImageResource(R.drawable.placeholder_image)
                                     }
                             } else {
-                                // 일반 HTTP URL일 경우 바로 로드
+                                // 일반 http/https URL이면 바로 로딩
                                 Glide.with(holder.itemView.context)
                                     .load(profileUrl)
                                     .circleCrop()
@@ -71,6 +71,9 @@ class ChatAdapter(
                         } else {
                             imageView.setImageResource(R.drawable.placeholder_image)
                         }
+                    }
+                    .addOnFailureListener {
+                        imageView.setImageResource(R.drawable.placeholder_image)
                     }
             } else {
                 imageView.visibility = View.INVISIBLE
@@ -85,11 +88,9 @@ class ChatAdapter(
 
     override fun getItemCount(): Int = messages.size
 
-    // 새로운 메시지 리스트를 추가하는 함수 추가
     fun updateMessages(newMessages: List<ChatMessage>) {
         messages.clear()
         messages.addAll(newMessages)
-        notifyDataSetChanged() // RecyclerView 업데이트
+        notifyDataSetChanged()
     }
 }
-

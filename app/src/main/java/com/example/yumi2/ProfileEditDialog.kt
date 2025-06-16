@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.DialogFragment
 import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
@@ -34,6 +35,9 @@ class ProfileEditDialog : DialogFragment() {
         super.onDetach()
         listener = null
     }
+
+    private lateinit var editLolId: EditText
+    private lateinit var btnDeleteLolId: Button
 
     private lateinit var profileImageView: ImageView
     private lateinit var editNickname: EditText
@@ -61,6 +65,8 @@ class ProfileEditDialog : DialogFragment() {
             dismiss()
         }
 
+        editLolId = view.findViewById(R.id.editLolId)
+        btnDeleteLolId = view.findViewById(R.id.btnDeleteLolId)
         editNickname = view.findViewById(R.id.editNickname)
         editBio = view.findViewById(R.id.editBio)
         profileImageView = view.findViewById(R.id.profileImageView)
@@ -69,6 +75,25 @@ class ProfileEditDialog : DialogFragment() {
         btnCheckNickname = view.findViewById(R.id.btnCheckNickname)
 
         loadUserProfile(uid) // 사용자 정보 불러오기
+
+        btnDeleteLolId.setOnClickListener {
+            val db = FirebaseFirestore.getInstance()
+            db.collection("user_profiles").document(uid)
+                .update("lolId", "")
+                .addOnSuccessListener {
+                    Toast.makeText(context, "롤 아이디가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                    editLolId.setText("")
+
+                    // === 🔥 최근검색 완전 삭제! ===
+                    val prefsName = "recent_searches_$uid"
+                    val prefs = requireContext().getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+                    prefs.edit().remove("search_list_ordered").apply()
+                    // ============================
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(context, "삭제 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
 
         btnCheckNickname.setOnClickListener {
             checkNicknameDuplicate()
@@ -106,6 +131,8 @@ class ProfileEditDialog : DialogFragment() {
                     editNickname.setText(nickname)
                     val bio = document.getString("myinfo") ?: ""
                     editBio.setText(bio)
+                    val lolId = document.getString("lolId") ?: ""
+                    editLolId.setText(lolId)
 
                     val imageUrl = document.getString("profileImageUrl")
                     val defaultProfileUrl = "gs://yumi-5f5c0.firebasestorage.app/default_profile.jpg"
@@ -165,8 +192,24 @@ class ProfileEditDialog : DialogFragment() {
         saveProfileToFirestore(uid, newNickname, newBio, imageUri)
     }
 
+    // (1) 롤 아이디 저장/수정할 때
     private fun saveProfileToFirestore(uid: String, nickname: String, bio: String, imageUri: Uri?) {
         val profileUpdate = mutableMapOf<String, Any>("myinfo" to bio, "nickname" to nickname)
+        val lolIdInput = editLolId.text.toString().trim()
+        profileUpdate["lolId"] = lolIdInput
+
+        // === 🔥 여기 추가! ===
+        // 1. 기존 SearchNameList에서 다 지우고 2. 새 아이디만 넣어서 저장
+        val prefsName = "recent_searches_$uid"
+        val prefs = requireContext().getSharedPreferences(prefsName, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        if (lolIdInput.isNotBlank()) {
+            editor.putString("search_list_ordered", lolIdInput) // 새 닉네임#태그만 1개로
+        } else {
+            editor.remove("search_list_ordered") // 롤 아이디가 비었으면 최근검색도 삭제
+        }
+        editor.apply()
+        // ====================
 
         if (imageUri != null) {
             uploadProfileImage(uid, imageUri) { downloadUrl ->

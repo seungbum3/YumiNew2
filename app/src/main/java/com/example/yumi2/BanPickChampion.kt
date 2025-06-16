@@ -81,7 +81,7 @@ class BanPickChampion : AppCompatActivity() {
             countDownTimer?.cancel()
             if (isTimerEnabled) {
                 banPickTimeText.visibility = TextView.VISIBLE
-                banPickTimeText.text = "20초"
+                banPickTimeText.text = "60초"
                 startTimer()
             }
             Toast.makeText(this, "초기화 완료", Toast.LENGTH_SHORT).show()
@@ -200,48 +200,55 @@ class BanPickChampion : AppCompatActivity() {
     }
 
     private fun showChampionChoiceDialog() {
-        val dialog = BanPickChampionChoice.newInstance { champion ->
-            processChampionSelection(champion.id, champion.splashUrl, champion.iconUrl)
-        }
+        val dialog = BanPickChampionChoice.newInstance(
+            mode = "solo", // ← 여기 명시적으로 모드를 넣어줌
+            onChampionSelected = { champion ->
+                processChampionSelection(champion.id, champion.splashUrl, champion.iconUrl)
+            }
+        )
         dialog.show(supportFragmentManager, "ChampionDialog")
     }
 
+
     private fun startTimer() {
         countDownTimer?.cancel()
-        countDownTimer = object : CountDownTimer(20000, 1000) {
+        countDownTimer = object : CountDownTimer(60000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 banPickTimeText.text = "${millisUntilFinished / 1000}초"
             }
 
             override fun onFinish() {
                 banPickTimeText.text = "0초"
+
                 if (currentPickIndex < pickOrder.size) {
                     val viewId = pickOrder[currentPickIndex]
                     val resName = resources.getResourceEntryName(viewId)
-                    if (resName.contains("ban")) {
-                        BanPickChampionChoice.selectedChampions[currentPickIndex] = ""
+
+                    // 사용되지 않은 챔피언 리스트
+                    val unused = BanPickChampionChoice.allChampions.filterNot {
+                        BanPickChampionChoice.selectedChampions.contains(it.id)
+                    }
+
+                    if (unused.isNotEmpty()) {
+                        val randomChamp = unused.random()
+                        val imageView = findViewById<ImageView>(viewId)
+                        val isBan = resName.contains("ban")
+                        val url = if (isBan) randomChamp.iconUrl else randomChamp.splashUrl
+                            ?: randomChamp.iconUrl
+
+                        if (!url.isNullOrBlank()) {
+                            Picasso.get().load(url).into(imageView)
+                        }
+
+                        BanPickChampionChoice.selectedChampions[currentPickIndex] = randomChamp.id
                         currentPickIndex++
+
+                        val toastMsg = if (isBan) "금지 챔피언 ${randomChamp.name} 자동 선택"
+                        else "${randomChamp.name} 자동 선택"
+                        Toast.makeText(this@BanPickChampion, toastMsg, Toast.LENGTH_SHORT).show()
+
                         updatePickTitle()
                         if (currentPickIndex < pickOrder.size) startTimer()
-                    } else {
-                        val unused = BanPickChampionChoice.allChampions.filterNot {
-                            BanPickChampionChoice.selectedChampions.contains(it.id)
-                        }
-                        if (unused.isNotEmpty()) {
-                            val randomChamp = unused.random()
-                            val imageView = findViewById<ImageView>(viewId)
-                            val url = randomChamp.splashUrl ?: randomChamp.iconUrl
-                            Picasso.get().load(url).into(imageView)
-                            BanPickChampionChoice.selectedChampions[currentPickIndex] = randomChamp.id
-                            currentPickIndex++
-                            Toast.makeText(
-                                this@BanPickChampion,
-                                "${randomChamp.name} 자동 선택",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            updatePickTitle()
-                            if (currentPickIndex < pickOrder.size) startTimer()
-                        }
                     }
                 }
             }

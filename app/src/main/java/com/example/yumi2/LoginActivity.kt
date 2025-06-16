@@ -19,9 +19,9 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import android.util.Patterns
+import androidx.appcompat.app.AppCompatDelegate
+import com.google.firebase.messaging.FirebaseMessaging
 
-
-//hello
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
@@ -32,6 +32,7 @@ class LoginActivity : AppCompatActivity() {
     private val GOOGLE_SIGN_IN_REQUEST_CODE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login)
 
@@ -59,6 +60,7 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, JoinActivity::class.java))
         }
 
+        // 이메일/비밀번호 로그인 버튼
         btnLogin.setOnClickListener {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
@@ -72,6 +74,7 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Firebase 이메일 로그인
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -79,11 +82,25 @@ class LoginActivity : AppCompatActivity() {
                         if (user != null) {
                             val uid = user.uid
 
+                            // SharedPreferences에 UID 저장
                             val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-                            with(sharedPref.edit()) {
-                                putString("loggedInUID", uid) // 🔥 UID 저장
-                                apply()
-                            }
+                            sharedPref.edit()
+                                .putString("loggedInUID", uid)
+                                .apply()
+
+                            // FCM 토큰 받아서 Firestore에 업데이트
+                            FirebaseMessaging.getInstance().token
+                                .addOnSuccessListener { token ->
+                                    firestore.collection("users")
+                                        .document(uid)
+                                        .update("fcmToken", token)
+                                        .addOnFailureListener { e ->
+                                            Log.w("LoginActivity", "FCM 토큰 업데이트 실패", e)
+                                        }
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.w("LoginActivity", "FCM 토큰 가져오기 실패", e)
+                                }
 
                             Toast.makeText(this, "로그인 성공!", Toast.LENGTH_SHORT).show()
                             navigateToMainPage()
@@ -95,6 +112,7 @@ class LoginActivity : AppCompatActivity() {
                 }
         }
     }
+
 
     private fun navigateToMainPage() {
         startActivity(Intent(this, MainpageActivity::class.java))

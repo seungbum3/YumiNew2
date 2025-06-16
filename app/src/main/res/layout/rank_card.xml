@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp">
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        tools:ignore="MissingConstraints">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- 🔹 솔로랭크 카드 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/rankCard"
+            android:layout_width="260dp"
+            android:layout_height="120dp"
+            android:layout_margin="5dp"
+            app:cardElevation="5dp"
+            app:cardCornerRadius="10dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp">
+
+                <!-- 솔로랭크 티어 이미지 -->
+                <ImageView
+                    android:id="@+id/rankTierImage"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <!-- 솔로랭크 텍스트 -->
+                <TextView
+                    android:id="@+id/rankType"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="개인/2인전"
+                    android:textStyle="bold"
+                    android:textSize="10sp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="25dp"
+                    android:textColor="@android:color/black"
+                    app:layout_constraintStart_toEndOf="@id/rankTierImage"
+                    app:layout_constraintTop_toTopOf="@id/rankTierImage"/>
+
+                <!-- 솔로랭크 티어 -->
+                <TextView
+                    android:id="@+id/rankTier"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TIER"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@android:color/holo_green_dark"
+                    app:layout_constraintStart_toStartOf="@id/rankType"
+                    app:layout_constraintTop_toBottomOf="@id/rankType"/>
+
+                <!-- 솔로랭크 LP -->
+                <TextView
+                    android:id="@+id/rankLP"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 LP"
+                    android:textSize="9sp"
+                    android:layout_marginStart="20dp"
+                    app:layout_constraintStart_toStartOf="@id/rankTier"
+                    app:layout_constraintTop_toBottomOf="@id/rankTier"
+                    android:layout_marginTop="4dp"/>
+
+                <!-- 솔로랭크 승/패 -->
+                <TextView
+                    android:id="@+id/rankWinLoss"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0전 0승 0패"
+                    android:textSize="9sp"
+                    app:layout_constraintStart_toStartOf="@id/rankType"
+                    app:layout_constraintTop_toBottomOf="@id/rankLP"
+                    android:layout_marginTop="4dp"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 🔹 자유랭크 카드 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/rankCard1"
+            android:layout_width="260dp"
+            android:layout_height="120dp"
+            android:layout_margin="5dp"
+            app:cardElevation="5dp"
+            app:cardCornerRadius="10dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp">
+
+                <!-- 자유랭크 티어 이미지 -->
+                <ImageView
+                    android:id="@+id/rankTierImage1"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <!-- 자유랭크 텍스트 -->
+                <TextView
+                    android:id="@+id/rankType1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="자유랭크"
+                    android:textSize="10sp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="25dp"
+                    android:textColor="@android:color/black"
+                    app:layout_constraintStart_toEndOf="@id/rankTierImage1"
+                    app:layout_constraintTop_toTopOf="@id/rankTierImage1"/>
+
+                <!-- 자유랭크 티어 -->
+                <TextView
+                    android:id="@+id/rankTier1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TIER"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@android:color/holo_blue_dark"
+                    app:layout_constraintStart_toStartOf="@id/rankType1"
+                    app:layout_constraintTop_toBottomOf="@id/rankType1"/>
+
+                <!-- 자유랭크 LP -->
+                <TextView
+                    android:id="@+id/rankLP1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 LP"
+                    android:textSize="10sp"
+                    android:layout_marginStart="20dp"
+                    app:layout_constraintStart_toStartOf="@id/rankTier1"
+                    app:layout_constraintTop_toBottomOf="@id/rankTier1"
+                    android:layout_marginTop="4dp"/>
+
+                <!-- 자유랭크 승/패 -->
+                <TextView
+                    android:id="@+id/rankWinLoss1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0전 0승 0패"
+                    android:textSize="10sp"
+                    app:layout_constraintStart_toStartOf="@id/rankType1"
+                    app:layout_constraintTop_toBottomOf="@id/rankLP1"
+                    android:layout_marginTop="4dp"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

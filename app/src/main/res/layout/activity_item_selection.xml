@@ -10,7 +10,7 @@
         android:id="@+id/btnBack"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="30dp"
         android:layout_marginStart="24dp"
         android:src="@drawable/ic_back"
         android:contentDescription="뒤로 가기"
@@ -35,10 +35,11 @@
 
         <ToggleButton
             android:id="@+id/toggleQuickSlot"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textOff="퀵 슬롯 OFF"
-            android:textOn="퀵 슬롯 ON"
+            android:layout_width="100dp"
+            android:layout_height="38dp"
+            android:textOff="아이템 설명 OFF"
+            android:textOn="아이템 설명 ON"
+            android:textSize="9sp"
             android:background="#80929F"
             android:textColor="#B1C1CE"
             app:layout_constraintBottom_toTopOf="@id/btnSaveSlots"
@@ -50,8 +51,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/slotRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
+            android:layout_height="80dp"
             android:padding="0dp"
             android:background="@android:color/transparent"
             android:clipToPadding="false"/>
@@ -65,19 +65,21 @@
 
             <Button
                 android:id="@+id/btnSaveSlots"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="80dp"
+                android:layout_height="42dp"
                 android:backgroundTint="#80929F"
                 android:textColor="#E7EBED"
+                android:textSize="12sp"
                 android:text="저장"/>
 
             <Button
                 android:id="@+id/btnLoadSlots"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="110dp"
+                android:layout_height="42dp"
                 android:text="불러오기"
                 android:backgroundTint="#80929F"
                 android:textColor="#E7EBED"
+                android:textSize="12sp"
                 android:layout_marginStart="16dp"/>
         </LinearLayout>
     </LinearLayout>
@@ -87,7 +89,7 @@
         android:id="@+id/searchView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="12dp"
         android:queryHint="아이템 검색"
         app:layout_constraintTop_toBottomOf="@id/itemSlotContainerWrapper"
         app:layout_constraintStart_toStartOf="parent"
@@ -96,11 +98,13 @@
     <!-- 2행 x 7열 GridLayout (필터 아이콘) -->
     <GridLayout
         android:id="@+id/filterGrid"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:alignmentMode="alignMargins"
         android:columnCount="7"
         android:rowCount="2"
-        android:padding="8dp"
+        android:padding="6dp"
+        android:useDefaultMargins="true"
         android:background="@drawable/item_slot_background"
         android:layout_margin="16dp"
         app:layout_constraintTop_toBottomOf="@+id/searchView"
@@ -110,10 +114,11 @@
         <!-- 첫 번째 행 7개 아이콘 (예시: 40dp x 40dp, margin 4dp) -->
         <ImageButton
             android:id="@+id/filter_attack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_columnWeight="1"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_attack"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -121,10 +126,11 @@
 
         <ImageButton
             android:id="@+id/filter_Critical"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_critical"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -132,10 +138,11 @@
 
         <ImageButton
             android:id="@+id/filter_attack_speed"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_attack_speed"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -143,10 +150,11 @@
 
         <ImageButton
             android:id="@+id/filter_Onhit"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_on_hit"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -154,10 +162,11 @@
 
         <ImageButton
             android:id="@+id/filter_Armor_p"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_armor_penetration"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -165,10 +174,11 @@
 
         <ImageButton
             android:id="@+id/filter_Avility"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_gravity="fill"
+            android:layout_columnWeight="1"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_ability_power"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -176,10 +186,11 @@
 
         <ImageButton
             android:id="@+id/filter_Mana"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_mana"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -188,10 +199,11 @@
         <!-- 두 번째 행 7개 아이콘 -->
         <ImageButton
             android:id="@+id/filter_Magic_p"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_magic_penetration"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -199,10 +211,11 @@
 
         <ImageButton
             android:id="@+id/filter_Health"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_health"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -210,10 +223,11 @@
 
         <ImageButton
             android:id="@+id/filter_Armor"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_armor"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -221,10 +235,11 @@
 
         <ImageButton
             android:id="@+id/filter_Magic_r"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_magic_resistance"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -232,10 +247,11 @@
 
         <ImageButton
             android:id="@+id/filter_cooldown"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_cooldown"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -243,10 +259,11 @@
 
         <ImageButton
             android:id="@+id/filter_Movement"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_movement_speed"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -254,10 +271,11 @@
 
         <ImageButton
             android:id="@+id/filter_Omnivamp"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
             android:layout_margin="4dp"
-            android:layout_gravity="center"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
             android:scaleType="fitCenter"
             android:src="@drawable/lol_filter_omnivamp"
             android:background="?attr/selectableItemBackgroundBorderless"

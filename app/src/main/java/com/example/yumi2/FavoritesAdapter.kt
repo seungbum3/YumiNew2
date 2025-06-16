@@ -28,39 +28,56 @@ class FavoritesAdapter(
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_favorite, parent, false)
         return FavoriteViewHolder(view)
     }
-// 안sdddddd
+
     override fun onBindViewHolder(holder: FavoriteViewHolder, position: Int) {
         val favorite = favoriteList[position]
-        val summonerName = favorite["summonerName"] ?: "알 수 없음"
+        val summonerName = favorite["summonerName"] ?: "닉네임 없음"
 
+        // 아이콘과 닉네임을 설정 (아이콘은 채워진 별 이미지로 표시)
         holder.favoriteName.text = summonerName
+        holder.favoriteIcon.setImageResource(R.drawable.ic_star) // 즐겨찾기된 상태
 
-        // 🔹 Firestore에서 가져온 즐겨찾기 상태를 초기화
-        if (!favoriteStatus.containsKey(summonerName)) {
-            favoriteStatus[summonerName] = true // 기본적으로 즐겨찾기 활성화
-        }
-
-        // 🔹 현재 상태에 따라 UI 변경
-        updateFavoriteIcon(holder.favoriteIcon, favoriteStatus[summonerName] ?: true)
-
-        // 🔹 별표 클릭 이벤트 (UI 상태만 변경)
         holder.favoriteIcon.setOnClickListener {
-            val isFavorite = favoriteStatus[summonerName] ?: true
-            favoriteStatus[summonerName] = !isFavorite // 상태 반전
+            val currentPosition = holder.adapterPosition
+            if (currentPosition == RecyclerView.NO_POSITION) return@setOnClickListener
 
-            // UI 업데이트
-            updateFavoriteIcon(holder.favoriteIcon, !isFavorite)
+            val db = FirebaseFirestore.getInstance()
+            db.collection("users").document(userId)
+                .collection("favorites")
+                .whereEqualTo("summonerName", summonerName)
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    for (document in querySnapshot.documents) {
+                        db.collection("users").document(userId)
+                            .collection("favorites")
+                            .document(document.id)
+                            .delete()
+                            .addOnSuccessListener {
+                                Log.d("FavoritesAdapter", "즐겨찾기 제거 성공!")
+                                // 로컬 리스트 업데이트
+                                favoriteList.removeAt(currentPosition)
+                                notifyItemRemoved(currentPosition)
+                                notifyItemRangeChanged(currentPosition, favoriteList.size)
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("FavoritesAdapter", "즐겨찾기 제거 실패: $e")
+                            }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("FavoritesAdapter", "즐겨찾기 쿼리 실패: $e")
+                }
         }
     }
 
-    override fun getItemCount(): Int = favoriteList.size
-
+        override fun getItemCount(): Int = favoriteList.size
 
     fun updateFavorites(newList: MutableList<HashMap<String, String>>) {
         favoriteList.clear()
         favoriteList.addAll(newList)
         notifyDataSetChanged()
     }
+
     // 🔹 별표 아이콘 변경 함수
     private fun updateFavoriteIcon(icon: ImageView, isFavorite: Boolean) {
         if (isFavorite) {

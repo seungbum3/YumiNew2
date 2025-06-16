@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -107,14 +108,16 @@ class FriendRequestActivity : AppCompatActivity(), FriendRequestAdapter.ActionLi
         batch.delete(db.collection("users").document(requesterId)
             .collection("sent_requests").document(currentUid))
 
-        batch.commit().addOnSuccessListener { loadRequests() }
+        batch.commit().addOnSuccessListener { loadRequests()
+            sendFriendRequestResultNotification(requesterId, "accept")}
     }
 
     override fun onReject(requesterId: String) {
         val uid = FirebaseAuth.getInstance().currentUser!!.uid
         db.collection("users").document(uid)
             .collection("friend_requests").document(requesterId)
-            .delete().addOnSuccessListener { loadRequests() }
+            .delete().addOnSuccessListener { loadRequests()
+                sendFriendRequestResultNotification(requesterId, "reject")}
     }
 
 
@@ -133,5 +136,31 @@ class FriendRequestActivity : AppCompatActivity(), FriendRequestAdapter.ActionLi
 
         batch.commit().addOnSuccessListener { loadRequests() }
     }
+    // 친구 요청 결과 알림 보내기 (수락/거절)
+    private fun sendFriendRequestResultNotification(toUid: String, result: String) {
+        val myUid = FirebaseAuth.getInstance().currentUser!!.uid
+        db.collection("user_profiles").document(myUid).get()
+            .addOnSuccessListener { doc ->
+                val myNickname = doc.getString("nickname") ?: "알 수 없음"
+                val message = if (result == "accept") {
+                    "$myNickname 님이 친구요청을 수락하였습니다."
+                } else {
+                    "$myNickname 님이 친구요청을 거절하였습니다."
+                }
+                db.collection("users").document(toUid)
+                    .collection("notifications")
+                    .add(
+                        mapOf(
+                            "type" to "friend_request_result",
+                            "senderUid" to myUid,
+                            "senderNickname" to myNickname,
+                            "message" to message,
+                            "timestamp" to System.currentTimeMillis()
+                        )
+                    )
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            }
+    }
+
 
 }

@@ -20,11 +20,10 @@ class ChampionTierVowelActivity : AppCompatActivity() {
     private var currentRoleTags: List<String> = listOf("Top")
     private lateinit var adapter: TierChampionAdapter
 
-    // 정렬 타입/방향 관리
-    enum class SortType { COMBINED, WIN, PICK, BAN }
+    enum class SortType { NAME, COMBINED, WIN, PICK, BAN }
     enum class SortDirection { DESC, ASC, DEFAULT }
-    private var currentSortType: SortType = SortType.COMBINED
-    private var currentSortDirection: SortDirection = SortDirection.DESC
+    private var currentSortType: SortType = SortType.NAME
+    private var currentSortDirection: SortDirection = SortDirection.ASC
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +41,6 @@ class ChampionTierVowelActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
-        // 역할 버튼 클릭 시 태그/필터 변경
         findViewById<Button>(R.id.btn_top).setOnClickListener {
             highlightSelectedButton(it as MaterialButton)
             currentRoleTags = listOf("Top")
@@ -69,7 +67,6 @@ class ChampionTierVowelActivity : AppCompatActivity() {
             filterByTags(currentRoleTags)
         }
 
-        // 헤더 클릭(정렬)
         findViewById<TextView>(R.id.header_win).setOnClickListener {
             onSortHeaderClicked(SortType.WIN)
         }
@@ -80,25 +77,21 @@ class ChampionTierVowelActivity : AppCompatActivity() {
             onSortHeaderClicked(SortType.BAN)
         }
 
-        // 기본값: 탑 역할 자동 선택
         findViewById<Button>(R.id.btn_top).performClick()
     }
 
-    // 헤더(정렬 기준) 클릭시 토글
     private fun onSortHeaderClicked(type: SortType) {
         if (currentSortType == type) {
-            // 같은 헤더 연속 클릭: DESC → ASC → DEFAULT → DESC...
             currentSortDirection = when (currentSortDirection) {
                 SortDirection.DESC -> SortDirection.ASC
                 SortDirection.ASC -> SortDirection.DEFAULT
                 SortDirection.DEFAULT -> SortDirection.DESC
             }
-            // 기본으로 돌아가면 종합점수로 바꿈
             if (currentSortDirection == SortDirection.DEFAULT) {
-                currentSortType = SortType.COMBINED
+                currentSortType = SortType.NAME
+                currentSortDirection = SortDirection.ASC
             }
         } else {
-            // 다른 헤더 클릭시 DESC로 시작
             currentSortType = type
             currentSortDirection = SortDirection.DESC
         }
@@ -121,6 +114,7 @@ class ChampionTierVowelActivity : AppCompatActivity() {
                         TierChampion(name, iconUrl, winRate, pickRate, banRate)
                     } else null
                 }
+
                 val sortedList = sortChampionList(filteredList, currentSortType, currentSortDirection)
                 adapter.setItems(sortedList)
             }
@@ -148,8 +142,8 @@ class ChampionTierVowelActivity : AppCompatActivity() {
         sortType: SortType,
         sortDirection: SortDirection
     ): List<TierChampion> {
-        // 1. 먼저 기준별 정렬
         val sorted = when (sortType) {
+            SortType.NAME -> list.sortedBy { it.name }
             SortType.COMBINED -> list.sortedByDescending {
                 (it.winRate.toFloatOrNull() ?: 0f) * 0.6f +
                         (it.pickRate.toFloatOrNull() ?: 0f) * 0.3f +
@@ -159,11 +153,11 @@ class ChampionTierVowelActivity : AppCompatActivity() {
             SortType.PICK -> list.sortedByDescending { it.pickRate.toFloatOrNull() ?: 0f }
             SortType.BAN -> list.sortedByDescending { it.banRate.toFloatOrNull() ?: 0f }
         }
-        // 2. 방향에 따라 뒤집기 or 기본정렬(종합점수)
+
         return when (sortDirection) {
-            SortDirection.DESC -> sorted
-            SortDirection.ASC -> sorted.reversed()
-            SortDirection.DEFAULT -> sortChampionList(list, SortType.COMBINED, SortDirection.DESC)
+            SortDirection.DESC -> sorted.reversed()
+            SortDirection.ASC -> sorted
+            SortDirection.DEFAULT -> sortChampionList(list, SortType.NAME, SortDirection.ASC)
         }
     }
 }

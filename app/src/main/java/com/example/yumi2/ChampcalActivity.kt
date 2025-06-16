@@ -7,6 +7,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
@@ -76,23 +77,29 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             }
         }
 
-        btnLoadFavoriteItems.text = "불러오기"
+        btnLoadFavoriteItems.text = "아이템 불러오기"
         btnLoadFavoriteItems.setOnClickListener {
             showLoadConfigurationsDialog()
         }
+
         val btnResetItems = findViewById<Button>(R.id.btnResetItems).apply {
-            text = "초기화"  // XML에 이미 적어두셨다면 생략해도 됩니다.
+            text = "전체 초기화"
             setOnClickListener {
-                // 6칸 모두 null 로 채우고
+                // 아이템 초기화
                 for (i in favoriteItems.indices) {
                     favoriteItems[i] = null
                 }
-                // 슬롯 UI 갱신
                 updateItemSlotsUI()
-                // (선택사항) 아이템 효과가 빠진 상태로 스탯도 다시 계산하고 싶다면:
+
+                // 레벨 초기화 추가
+                currentLevel = 1
+                levelText.text = "레벨: $currentLevel"
+
+                // 챔피언 데이터 갱신
                 currentChampionId?.let { loadChampionData(it, currentLevel) }
             }
         }
+
     }
 
     private fun createBlankItemSlots() {
@@ -142,23 +149,33 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
                 championNameText.text = data["name"] as? String ?: ""
 
                 (data["portrait_url"] as? String)?.takeIf { it.isNotEmpty() }?.let { url ->
-                    // 챔피언 이미지 표시
-                    (championSelector.findViewById<TextView>(R.id.championSelectorText))
-                        ?.visibility = View.GONE
+                    championSelector.findViewById<TextView>(R.id.championSelectorText)?.visibility = View.GONE
+
                     var iv = championSelector.findViewById<ImageView>(R.id.championImage)
                     if (iv == null) {
+                        val sizeDp = 120
+                        val sizePx = TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            sizeDp.toFloat(),
+                            resources.displayMetrics
+                        ).toInt()
+
                         iv = ImageView(this).apply {
                             id = R.id.championImage
-                            layoutParams = FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.MATCH_PARENT,
-                                FrameLayout.LayoutParams.MATCH_PARENT
-                            )
-                            scaleType = ImageView.ScaleType.CENTER_CROP
+                            layoutParams = FrameLayout.LayoutParams(sizePx, sizePx)
+                            scaleType = ImageView.ScaleType.FIT_XY  // 어차피 crop으로 자르기 때문에 자유롭게 설정 가능
+                            adjustViewBounds = false
                         }
                         championSelector.addView(iv)
                     }
-                    Glide.with(this).load(url).into(iv)
+
+                    // ✅ 여기에 적용!
+                    Glide.with(this)
+                        .load(url)
+                        .transform(TopCropTransformation())  // 👈 여기가 핵심!
+                        .into(iv)
                 }
+
 
                 val baseStats = data["base_stats"] as? Map<String, Number>
                 val growthStats = data["growth_stats"] as? Map<String, Number>
@@ -442,9 +459,9 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
 
                 // 커스텀 타이틀 뷰
                 val titleView = TextView(this).apply {
-                    text = "불러올 구성을 선택하세요"
+                    text = "불러올 아이템 구성을 선택하세요"
                     setTextColor(Color.parseColor("#80929F"))
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                     setPadding(24, 24, 24, 12)
                 }
 

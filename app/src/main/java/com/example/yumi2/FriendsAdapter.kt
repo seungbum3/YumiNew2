@@ -38,56 +38,65 @@ class FriendsAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val friend = filteredList[position]
-        val name = friend["nickname"] ?: "알 수 없음"
-        val imageUrl = friend["profileImageUrl"] ?: ""
         val friendId = friend["id"] ?: ""
 
-        holder.friendName.text = name
+        // 1️⃣ Firestore에서 항상 user_profiles/{friendId} 읽어서 정보 최신화
+        val db = FirebaseFirestore.getInstance()
+        db.collection("user_profiles").document(friendId)
+            .get()
+            .addOnSuccessListener { doc ->
+                val name = doc.getString("nickname") ?: "알 수 없음"
+                val imageUrl = doc.getString("profileImageUrl") ?: ""
 
-        if (imageUrl.startsWith("gs://")) {
-            FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
-                .downloadUrl
-                .addOnSuccessListener { uri ->
+                holder.friendName.text = name
+
+                // 이미지 처리 (gs:// or http)
+                if (imageUrl.startsWith("gs://")) {
+                    FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl)
+                        .downloadUrl
+                        .addOnSuccessListener { uri ->
+                            Glide.with(holder.itemView.context)
+                                .load(uri.toString())
+                                .circleCrop()
+                                .into(holder.friendProfileImage)
+                        }
+                        .addOnFailureListener {
+                            // 실패 시 기본 이미지 처리
+                            holder.friendProfileImage.setImageResource(R.drawable.default_profile)
+                        }
+                } else if (imageUrl.isNotEmpty()) {
                     Glide.with(holder.itemView.context)
-                        .load(uri.toString())
+                        .load(imageUrl)
                         .circleCrop()
                         .into(holder.friendProfileImage)
+                } else {
+                    // 이미지 없으면 기본 이미지
+                    holder.friendProfileImage.setImageResource(R.drawable.default_profile)
                 }
-                .addOnFailureListener {
-                    // 실패 시 기본 이미지 처리
+
+                // 클릭 시 채팅 이동 (닉네임 최신값 전달)
+                holder.itemView.setOnClickListener {
+                    val context = holder.itemView.context
+                    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
+                    if (friendId.isEmpty()) return@setOnClickListener
+
+                    getOrCreateChatRoom(currentUserId, friendId) { chatId ->
+                        val intent = Intent(context, ChatActivity::class.java).apply {
+                            putExtra("chatId", chatId)
+                            putExtra("friendId", friendId)
+                            putExtra("friendNickname", name) // 최신 닉네임 전달!
+                        }
+                        context.startActivity(intent)
+                    }
                 }
-        } else {
-            Glide.with(holder.itemView.context)
-                .load(imageUrl)
-                .circleCrop()
-                .into(holder.friendProfileImage)
-        }
-
-        // 친구 목록에서 클릭 시 채팅방 이동
-        holder.itemView.setOnClickListener {
-            val context = holder.itemView.context
-            val currentUserId =
-                FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
-            val friendId = friend["id"]
-
-            Log.d("FriendsAdapter", "✅ friend 데이터: $friend")
-            Log.d("FriendsAdapter", "✅ friendId 값: $friendId")
-
-            if (friendId.isNullOrEmpty()) {
-                Log.e("FriendsAdapter", "❌ 친구 ID가 없음! 채팅을 시작할 수 없습니다.")
-                return@setOnClickListener
+            }
+            .addOnFailureListener {
+                // Firestore 에러 시
+                holder.friendName.text = "알 수 없음"
+                holder.friendProfileImage.setImageResource(R.drawable.default_profile)
             }
 
-            getOrCreateChatRoom(currentUserId, friendId) { chatId ->
-                Log.d("FriendsAdapter", "✅ 친구 선택됨 - ID: $friendId, 닉네임: ${friend["nickname"]}")
-                val intent = Intent(context, ChatActivity::class.java).apply {
-                    putExtra("chatId", chatId)
-                    putExtra("friendId", friendId)
-                    putExtra("friendNickname", friend["nickname"])
-                }
-                context.startActivity(intent)
-            }
-        }
+        // 메뉴 등 나머지 코드는 기존과 동일하게...
         holder.optionsButton?.setOnClickListener { view ->
             val popup = PopupMenu(view.context, view)
             popup.menuInflater.inflate(R.menu.friend_item_menu, popup.menu)
@@ -95,45 +104,45 @@ class FriendsAdapter(
                 when (menuItem.itemId) {
                     R.id.menu_chat -> {
                         val context = view.context
-                        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
-                            ?: return@setOnMenuItemClickListener true
-                        if (friendId.isEmpty()) {
-                            Log.e("FriendsAdapter", "❌ 친구 ID가 없음! 채팅을 시작할 수 없습니다.")
-                            return@setOnMenuItemClickListener true
-                        }
+                        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnMenuItemClickListener true
+                        if (friendId.isEmpty()) return@setOnMenuItemClickListener true
                         getOrCreateChatRoom(currentUserId, friendId) { chatId ->
                             val intent = Intent(context, ChatActivity::class.java).apply {
                                 putExtra("chatId", chatId)
                                 putExtra("friendId", friendId)
-                                putExtra("friendNickname", friend["nickname"])
+                                // 별도 닉네임 전달 없이 ChatActivity에서 또 user_profiles fetch 추천
                             }
                             context.startActivity(intent)
                         }
                         true
                     }
-
                     R.id.menu_delete -> {
                         AlertDialog.Builder(holder.itemView.context)
                             .setTitle("친구 삭제")
                             .setMessage("${holder.friendName.text}님을 친구 목록에서 삭제하시겠습니까?")
-                            .setPositiveButton("삭제") { _, _ -> deleteFriend(friendId) }
+                            .setPositiveButton("삭제") { _, _ ->
+                                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setPositiveButton
+                                deleteFriendAndChats(currentUserId, friendId, holder.itemView.context) {
+                                    // UI 업데이트
+                                    val newList = filteredList.filter { it["id"] != friendId }
+                                    updateData(newList)
+                                }
+                            }
                             .setNegativeButton("취소", null)
                             .show()
                         true
                     }
-
                     R.id.menu_block -> {
                         blockFriend(friendId)
                         true
                     }
-
                     else -> false
                 }
             }
             popup.show()
         }
-
     }
+
 
     fun updateData(newList: List<Map<String, String>>) {
         fullList = newList
@@ -247,5 +256,35 @@ class FriendsAdapter(
         }.addOnFailureListener { e ->
             Log.e("FriendsAdapter", "❌ 차단 실패: $friendId", e)
         }
+    }
+    private fun deleteFriendAndChats(currentUserId: String, friendId: String, context: android.content.Context, onComplete: (() -> Unit)? = null) {
+        val db = FirebaseFirestore.getInstance()
+        val batch = db.batch()
+
+        // 1. 친구관계 삭제 (양쪽)
+        val myFriendRef = db.collection("users").document(currentUserId).collection("friends").document(friendId)
+        val theirFriendRef = db.collection("users").document(friendId).collection("friends").document(currentUserId)
+        batch.delete(myFriendRef)
+        batch.delete(theirFriendRef)
+
+        // 2. 채팅방 삭제 (users 배열에 두 명만 포함된 채팅방)
+        db.collection("chats")
+            .whereEqualTo("users", listOf(currentUserId, friendId))
+            .get()
+            .addOnSuccessListener { docs1 ->
+                db.collection("chats")
+                    .whereEqualTo("users", listOf(friendId, currentUserId))
+                    .get()
+                    .addOnSuccessListener { docs2 ->
+                        val allDocs = docs1.documents + docs2.documents
+                        allDocs.forEach { doc ->
+                            doc.reference.delete()
+                        }
+                        batch.commit().addOnSuccessListener {
+                            android.widget.Toast.makeText(context, "친구 및 채팅 기록 삭제 완료", android.widget.Toast.LENGTH_SHORT).show()
+                            onComplete?.invoke()
+                        }
+                    }
+            }
     }
 }

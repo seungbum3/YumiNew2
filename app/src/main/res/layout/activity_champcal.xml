@@ -9,7 +9,7 @@
         android:id="@+id/btnBack"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="30dp"
         android:layout_marginStart="24dp"
         android:src="@drawable/ic_back"
         android:contentDescription="뒤로 가기"
@@ -38,7 +38,7 @@
                 android:background="#B1C1CE"
                 android:padding="8dp"
                 android:layout_marginBottom="8dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:layout_marginHorizontal="4dp"
                 android:backgroundTint="#B1C1CE"
                 android:elevation="4dp">
@@ -46,7 +46,7 @@
                 <FrameLayout
                     android:id="@+id/championSelector"
                     android:layout_width="120dp"
-                    android:layout_height="150dp"
+                    android:layout_height="120dp"
                     android:clickable="true"
                     android:focusable="true"
                     android:background="#E7EBED">
@@ -56,7 +56,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="챔피언 선택"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textColor="#2C2C2C"
                         android:layout_gravity="center"/>
                 </FrameLayout>
@@ -66,9 +66,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="챔피언 이름"
-                    android:textSize="20sp"
+                    android:textSize="16sp"
                     android:textColor="#1A1A1A"
-                    android:layout_marginStart="16dp" />
+                    android:layout_marginStart="30dp"/>
             </LinearLayout>
 
             <!-- 레벨 설정 -->
@@ -81,16 +81,19 @@
                 <Button
                     android:id="@+id/btnLevelMinus"
                     android:layout_width="75dp"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="#80929F"
+                    android:layout_height="50dp"
+                    android:backgroundTint="#B1C1CE"
                     android:text="-"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"/>
+                    android:gravity="center"
+                    android:textColor="#000000"
+                    android:textSize="30sp"
+                    android:padding="0dp"
+                    />
                 <TextView
                     android:id="@+id/levelText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="레벨: 1"
+                    android:text="레벨 : 1"
                     android:textColor="#1A1A1A"
                     android:textSize="16sp"
                     android:layout_marginStart="16dp"
@@ -98,11 +101,12 @@
                 <Button
                     android:id="@+id/btnLevelPlus"
                     android:layout_width="75dp"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="#80929F"
+                    android:layout_height="50dp"
+                    android:backgroundTint="#B1C1CE"
                     android:text="+"
-                    android:textColor="#FFFFFF"
-                    android:textSize="20sp"/>
+                    android:textColor="#000000"
+                    android:textSize="25sp"
+                    android:padding="0dp"/>
             </LinearLayout>
 
             <!-- 아이템 불러오기 버튼 -->
@@ -112,7 +116,7 @@
                 android:layout_height="wrap_content"
                 android:text="나만의 아이템 세트 만들러가기"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textSize="13sp"
                 android:backgroundTint="#B1C1CE"
                 android:layout_marginTop="16dp" />
             <Button
@@ -121,9 +125,9 @@
                 android:layout_height="wrap_content"
                 android:text="아이템 초기화"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textSize="13sp"
                 android:backgroundTint="#B1C1CE"
-                android:layout_marginTop="16dp"/>
+                android:layout_marginTop="8dp"/>
 
             <!-- 아이템 슬롯 -->
             <LinearLayout

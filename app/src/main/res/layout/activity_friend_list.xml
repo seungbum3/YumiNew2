@@ -6,12 +6,12 @@
     android:background="#E7EBED"
     android:orientation="vertical">
 
-    <!-- 상단바: 뒤로가기 버튼, 타이틀, 친구 요청 영역 -->
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:padding="16dp"
+        android:layout_marginTop="30dp"
         android:gravity="center_vertical">
 
         <ImageButton
@@ -24,12 +24,13 @@
         <!-- 타이틀 -->
         <TextView
             android:id="@+id/tvTitle"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:gravity="center"
+            android:layout_marginEnd="20dp"
             android:text="친구 목록"
-            android:textSize="20sp"
-            android:gravity="center_vertical" />
+            android:textSize="20sp" />
+    </LinearLayout>
 
         <!-- 친구 요청 영역 -->
         <LinearLayout
@@ -38,6 +39,9 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:layout_gravity="right"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="10dp"
             android:clickable="true"
             android:focusable="true">
 
@@ -48,14 +52,14 @@
                 android:text="친구 찾기"
                 android:layout_marginRight="10sp"
                 android:textColor="@android:color/black"
-                android:textSize="16sp" />
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/tvFriendRequestText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="친구 요청"
-                android:textSize="16sp"
+                android:textSize="12sp"
                 android:textColor="@android:color/black" />
 
             <!-- 요청 개수를 표시하는 원형 배지; 요청이 없으면 GONE -->
@@ -71,7 +75,7 @@
                 android:textSize="12sp"
                 android:visibility="gone"/>
         </LinearLayout>
-    </LinearLayout>
+
 
 
 
@@ -79,7 +83,9 @@
         android:id="@+id/etSearch"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="친구 검색"
+        android:layout_marginTop="10dp"
+        android:hint=" 친구 검색"
+        android:textSize="14sp"
         android:padding="16dp"
         android:background="#FFFFFF"
         android:maxLines="1"

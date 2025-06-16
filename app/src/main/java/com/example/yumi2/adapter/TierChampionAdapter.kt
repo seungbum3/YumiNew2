@@ -38,6 +38,17 @@ class TierChampionAdapter(
             .placeholder(R.drawable.loading_icon)
             .error(R.drawable.error_image)
             .into(holder.imgChampionIcon)
+
+        // ✅ 클릭하면 챔피언 상세로 이동
+        holder.itemView.setOnClickListener {
+            val context = holder.itemView.context
+            val intent = Intent(context, ChampionDetailActivity::class.java).apply {
+                putExtra("championName", champion.name)
+                putExtra("championIconUrl", champion.iconUrl)
+            }
+            context.startActivity(intent)
+        }
+
         holder.itemView.findViewById<TextView>(R.id.tvWinRate).text = "${champion.winRate}%"
         holder.itemView.findViewById<TextView>(R.id.tvPickRate).text = "${champion.pickRate}%"
         holder.itemView.findViewById<TextView>(R.id.tvBanRate).text = "${champion.banRate}%"

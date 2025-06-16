@@ -22,11 +22,20 @@ class BanPickChampionChoice : DialogFragment() {
         var selectedChampions = MutableList(20) { "" }
         var allChampions = listOf<ChampionData>()
 
-        fun newInstance(onChampionSelected: (ChampionData) -> Unit): BanPickChampionChoice {
+        fun newInstance(
+            mode: String,
+            roomId: String? = null,
+            currentTurn: String? = null,
+            onChampionSelected: (ChampionData) -> Unit
+        ): BanPickChampionChoice {
             val fragment = BanPickChampionChoice()
+            fragment.mode = mode
+            fragment.roomId = roomId
+            fragment.currentTurn = currentTurn
             fragment.onChampionSelected = onChampionSelected
             return fragment
         }
+
         fun resetSelections() {
             if (selectedChampions.size != BanPickChampion.pickOrder.size) {
                 selectedChampions = MutableList(BanPickChampion.pickOrder.size) { "" }
@@ -36,9 +45,13 @@ class BanPickChampionChoice : DialogFragment() {
         }
     }
 
+    private var mode: String = "solo"
+    private var roomId: String? = null
+    private var currentTurn: String? = null
     private var onChampionSelected: ((ChampionData) -> Unit)? = null
     private var currentRole: String? = null
     private var selectedChampion: ChampionData? = null
+
     private lateinit var recyclerView: RecyclerView
     private lateinit var championAdapter: ChampionAdapter
     private lateinit var searchEditText: EditText
@@ -65,19 +78,49 @@ class BanPickChampionChoice : DialogFragment() {
 
         view.findViewById<Button>(R.id.btn_confirm).setOnClickListener {
             selectedChampion?.let { champ ->
-                val idx = BanPickChampion.currentPickIndex
-                if (selectedChampions.contains(champ.id)) {
-                    Toast.makeText(requireContext(), "이미 선택된 챔피언입니다", Toast.LENGTH_SHORT).show()
-                } else if (idx < selectedChampions.size) {
-                    selectedChampions[idx] = champ.id
-                    onChampionSelected?.invoke(champ)
-                    dismiss()
+                if (mode == "solo") {
+                    val idx = BanPickChampion.currentPickIndex
+                    if (selectedChampions.contains(champ.id)) {
+                        Toast.makeText(requireContext(), "이미 선택된 챔피언입니다", Toast.LENGTH_SHORT).show()
+                    } else if (idx >= 0 && idx < selectedChampions.size) {
+                        selectedChampions[idx] = champ.id
+                        onChampionSelected?.invoke(champ)
+                        dismiss()
+                    } else {
+                        Toast.makeText(requireContext(), "선택 인덱스 오류", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    // 친구 방 모드
+                    if (roomId == null || currentTurn == null) {
+                        Toast.makeText(requireContext(), "방 정보가 없습니다", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    val docRef = Firebase.firestore.collection("banpick_rooms").document(roomId!!)
+                    docRef.get().addOnSuccessListener { snapshot ->
+                        val picks = snapshot.get("picks") as? Map<*, *> ?: emptyMap<Any, Any>()
+                        if (picks.containsValue(champ.id)) {
+                            Toast.makeText(requireContext(), "이미 선택된 챔피언입니다", Toast.LENGTH_SHORT).show()
+                        } else {
+                            docRef.update("picks.$currentTurn", champ.id)
+                                .addOnSuccessListener {
+                                    Toast.makeText(requireContext(), "${champ.name} 선택 완료", Toast.LENGTH_SHORT).show()
+                                    onChampionSelected?.invoke(champ)
+                                    dismiss()
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(requireContext(), "선택 실패: ${it.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                    }
                 }
             } ?: Toast.makeText(requireContext(), "챔피언을 선택해주세요", Toast.LENGTH_SHORT).show()
         }
 
+
         recyclerView = view.findViewById(R.id.rv_champion_list)
         recyclerView.layoutManager = GridLayoutManager(context, 5)
+
         championAdapter = ChampionAdapter { champion ->
             selectedChampion = champion
             Toast.makeText(requireContext(), "${champion.name} 선택됨", Toast.LENGTH_SHORT).show()
@@ -167,3 +210,4 @@ class BanPickChampionChoice : DialogFragment() {
         championAdapter.submitList(filtered)
     }
 }
+

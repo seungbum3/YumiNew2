@@ -7,13 +7,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 상단바 -->
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:padding="16dp"
+        android:layout_marginTop="30dp"
         android:gravity="center_vertical">
-
+    <!-- 상단바 -->
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="wrap_content"
@@ -23,16 +24,18 @@
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginEnd="20dp"
             android:text="친구 찾기"
-            android:textSize="20sp"
-            android:gravity="center" />
+            android:textSize="20sp" />
     </LinearLayout>
 
     <!-- 검색창 + 버튼을 가로로 배치 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="70dp"
+        android:layout_marginTop="15dp"
         android:orientation="horizontal"
         android:padding="16dp"
         android:background="#B1C1CE">
@@ -52,7 +55,7 @@
         <ImageButton
             android:id="@+id/btnSearch"
             android:layout_width="wrap_content"
-            android:layout_height="47dp"
+            android:layout_height="37dp"
             android:background="@null"
             android:contentDescription="검색"
             android:src="@drawable/search_icon" />

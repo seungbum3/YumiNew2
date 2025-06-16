@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">676999256577-p8okt1c44i3q3205s3levp0ikeg44981.apps.googleusercontent.com</string>
+    <string name="firebase_database_url" translatable="false">https://yumi-5f5c0-default-rtdb.firebaseio.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">676999256577</string>
+    <string name="google_api_key" translatable="false">AIzaSyBvvtodeiaJs_9zH0YuqX1TvVEcyK9DTaY</string>
+    <string name="google_app_id" translatable="false">1:676999256577:android:85f70daa579ee09b50fe00</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBvvtodeiaJs_9zH0YuqX1TvVEcyK9DTaY</string>
+    <string name="google_storage_bucket" translatable="false">yumi-5f5c0.firebasestorage.app</string>
+    <string name="project_id" translatable="false">yumi-5f5c0</string>
+</resources>

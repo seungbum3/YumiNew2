@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_background"
+    android:background="#E7EBED"
     tools:context=".ChampionTierVowelActivity">
 
     <!-- 🔙 뒤로 가기 버튼 -->
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:text="챔피언 빌드"
         android:textStyle="bold"
-        android:textSize="12dp"
+        android:textSize="18dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -49,7 +49,7 @@
             android:id="@+id/btn_top"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.9"
             android:text="탑"
             android:textSize="12sp"
             android:backgroundTint="@android:color/transparent"
@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="정글"
-            android:textSize="11sp"
+            android:textSize="10sp"
             android:backgroundTint="@android:color/transparent"
             app:cornerRadius="0dp"
             app:strokeWidth="0dp"
@@ -152,6 +152,7 @@
                 android:textColor="#FF003C"
                 android:textStyle="bold"
                 android:textSize="13sp"
+                android:layout_marginEnd="10dp"
                 android:gravity="center"
                 android:textAlignment="center"/>
         </TableRow>

@@ -1,7 +1,6 @@
 package com.example.yumi2
 
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -18,7 +17,7 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
     private val db = FirebaseFirestore.getInstance()
     private lateinit var adapter: FindFriendAdapter
     private val users = mutableListOf<Map<String, String>>()
-    private val sentRequests = mutableSetOf<String>()
+    private val sentRequests = mutableSetOf<String>() // 이미 요청한 사용자 ID
     private val friendListIDs = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,6 +31,7 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
         rv.layoutManager = LinearLayoutManager(this)
         rv.adapter = adapter
 
+        // MaterialAutoCompleteTextView 검색창 설정
         val searchView = findViewById<MaterialAutoCompleteTextView>(R.id.etSearchUser)
         val btnSearch = findViewById<ImageButton>(R.id.btnSearch)
 
@@ -97,9 +97,11 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
             .get().addOnSuccessListener { docs ->
                 users.clear()
                 docs.forEach { doc ->
+                    // 현재 사용자, 이미 친구 목록에 포함된 사용자는 제외
                     if (doc.id != uid && !friendListIDs.contains(doc.id)) {
-                        val profileUrl = doc.getString("profileImageUrl")?.takeIf { it.isNotBlank() }
-                            ?: "default"
+                        val profileUrl =
+                            doc.getString("profileImageUrl")?.takeIf { it.isNotBlank() }
+                                ?: "default" // profileImageUrl이 없으면 기본 이미지 표시
                         users.add(
                             mapOf(
                                 "id" to doc.id,
@@ -124,71 +126,39 @@ class FindFriendActivity : AppCompatActivity(), FindFriendAdapter.FriendRequestL
     }
 
     override fun onSendRequest(userId: String) {
-        val uid = FirebaseAuth.getInstance().uid!!
-        val senderUid = uid
-        val receiverUid = userId
+        val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val targetUid = userId
+        val db = FirebaseFirestore.getInstance()
+        val data = mapOf(
+            "senderUid" to myUid,
+            "receiverUid" to targetUid,
+            "timestamp" to System.currentTimeMillis()
+        )
 
-        val mySentRef = db.collection("users").document(uid)
-            .collection("sent_requests").document(userId)
-        val theirReqRef = db.collection("users").document(userId)
-            .collection("friend_requests").document(uid)
-        val myReqRef = db.collection("users").document(uid)
-            .collection("friend_requests").document(userId)
-        Log.d("FirestoreDebug", "보내는 데이터: senderUid=$senderUid, receiverUid=$receiverUid")
-        db.collection("users").document(uid)
-            .collection("friend_requests").document(userId)
-            .get().addOnSuccessListener { document ->
-                if (document.exists()) {
-                    db.runBatch { batch ->
-                        batch.set(
-                            db.collection("users").document(uid)
-                                .collection("friends").document(userId),
-                            mapOf("id" to userId)
+        // 1. 친구 요청 보내기 (상대방 friend_requests에 저장)
+        db.collection("users").document(targetUid)
+            .collection("friend_requests").document(myUid)
+            .set(data)
+            .addOnSuccessListener {
+                // 2. 내 닉네임 가져와서 알림까지 추가로 전송
+                db.collection("user_profiles").document(myUid).get()
+                    .addOnSuccessListener { profileDoc ->
+                        val myNickname = profileDoc.getString("nickname") ?: "알 수 없음"
+                        val notif = hashMapOf(
+                            "type" to "friend_request",
+                            "senderUid" to myUid,
+                            "senderNickname" to myNickname,
+                            "timestamp" to System.currentTimeMillis()
                         )
-                        batch.set(
-                            db.collection("users").document(userId)
-                                .collection("friends").document(uid),
-                            mapOf("id" to uid)
-                        )
-                        batch.delete(myReqRef)
-                        batch.delete(
-                            db.collection("users").document(userId)
-                                .collection("sent_requests").document(uid)
-                        )
-                    }.addOnSuccessListener {
-                        // 친구 수락 후 처리 가능
-                    }.addOnFailureListener {
-                        // 에러 처리
+                        db.collection("users").document(targetUid)
+                            .collection("notifications")
+                            .add(notif)
                     }
-                } else {
-                    if (sentRequests.contains(userId)) {
-                        db.runBatch { batch ->
-                            batch.delete(mySentRef)
-                            batch.delete(theirReqRef)
-                        }.addOnSuccessListener {
-                            sentRequests.remove(userId)
-                            adapter.notifyDataSetChanged()
-                        }
-                    } else {
-                        db.runBatch { batch ->
-                            batch.set(mySentRef, mapOf(
-                                "to" to receiverUid,
-                                "status" to "pending",
-                                "senderUid" to senderUid,
-                                "receiverUid" to receiverUid
-                            ))
-                            batch.set(theirReqRef, mapOf(
-                                "from" to senderUid,
-                                "status" to "pending",
-                                "senderUid" to senderUid,
-                                "receiverUid" to receiverUid
-                            ))
-                        }.addOnSuccessListener {
-                            sentRequests.add(userId)
-                            adapter.notifyDataSetChanged()
-                        }
-                    }
-                }
+                // (여기에 안내 Toast 등 추가)
+            }
+            .addOnFailureListener { e ->
+                // 에러 안내(Toast 등)
             }
     }
+
 }
