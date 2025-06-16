@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="#F2F2F2">
+
+    <!-- 답글 작성자 닉네임 -->
+    <TextView
+        android:id="@+id/replyNickname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="닉네임"
+        android:textStyle="bold"
+        android:textSize="14sp" />
+
+    <!-- 답글 내용 -->
+    <TextView
+        android:id="@+id/replyText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="답글 내용"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
+
+    <!-- 답글 타임스탬프 -->
+    <TextView
+        android:id="@+id/replyTimestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2025-03-03"
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:layout_marginTop="4dp" />
+</LinearLayout>

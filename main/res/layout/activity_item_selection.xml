@@ -1,0 +1,306 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E7EBED">
+
+    <!-- 🔙 뒤로 가기 버튼 -->
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="24dp"
+        android:src="@drawable/ic_back"
+        android:contentDescription="뒤로 가기"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+
+
+    <!-- 상단 슬롯 영역 -->
+    <LinearLayout
+        android:id="@+id/itemSlotContainerWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:padding="8dp"
+        android:background="@drawable/item_slot_background"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/btnBack"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+
+        <ToggleButton
+            android:id="@+id/toggleQuickSlot"
+            android:layout_width="100dp"
+            android:layout_height="38dp"
+            android:textOff="아이템 설명 OFF"
+            android:textOn="아이템 설명 ON"
+            android:textSize="9sp"
+            android:background="#80929F"
+            android:textColor="#B1C1CE"
+            app:layout_constraintBottom_toTopOf="@id/btnSaveSlots"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginBottom="8dp"/>
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/slotRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:padding="0dp"
+            android:background="@android:color/transparent"
+            android:clipToPadding="false"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/btnSaveSlots"
+                android:layout_width="80dp"
+                android:layout_height="42dp"
+                android:backgroundTint="#80929F"
+                android:textColor="#E7EBED"
+                android:textSize="12sp"
+                android:text="저장"/>
+
+            <Button
+                android:id="@+id/btnLoadSlots"
+                android:layout_width="110dp"
+                android:layout_height="42dp"
+                android:text="불러오기"
+                android:backgroundTint="#80929F"
+                android:textColor="#E7EBED"
+                android:textSize="12sp"
+                android:layout_marginStart="16dp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- SearchView (텍스트 검색) -->
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:queryHint="아이템 검색"
+        app:layout_constraintTop_toBottomOf="@id/itemSlotContainerWrapper"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- 2행 x 7열 GridLayout (필터 아이콘) -->
+    <GridLayout
+        android:id="@+id/filterGrid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alignmentMode="alignMargins"
+        android:columnCount="7"
+        android:rowCount="2"
+        android:padding="6dp"
+        android:useDefaultMargins="true"
+        android:background="@drawable/item_slot_background"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@+id/searchView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 첫 번째 행 7개 아이콘 (예시: 40dp x 40dp, margin 4dp) -->
+        <ImageButton
+            android:id="@+id/filter_attack"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_columnWeight="1"
+            android:layout_margin="4dp"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_attack"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="공격력 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Critical"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_critical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="치명타 확률 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_attack_speed"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_attack_speed"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="공격 속도 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Onhit"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_on_hit"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="적중 시 효과 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Armor_p"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_armor_penetration"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="방어구 관통력 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Avility"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_gravity="fill"
+            android:layout_columnWeight="1"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_ability_power"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="주문력 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Mana"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_mana"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="마나 및 재생 필터"/>
+
+        <!-- 두 번째 행 7개 아이콘 -->
+        <ImageButton
+            android:id="@+id/filter_Magic_p"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_magic_penetration"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="마법 관통력 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Health"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_health"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="체력 및 재생 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Armor"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_armor"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="방어력 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Magic_r"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_magic_resistance"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="마법 저항력 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_cooldown"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_cooldown"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="스킬 가속 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Movement"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_movement_speed"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="이동 속도 필터"/>
+
+        <ImageButton
+            android:id="@+id/filter_Omnivamp"
+            android:layout_width="0dp"
+            android:layout_height="30dp"
+            android:layout_margin="4dp"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill"
+            android:scaleType="fitCenter"
+            android:src="@drawable/lol_filter_omnivamp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="생명력 흡수 및 모든 피해 흡혈 필터"/>
+    </GridLayout>
+
+    <!-- 아이템 목록 영역 -->
+    <LinearLayout
+        android:id="@+id/itemRecyclerViewWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        android:padding="4dp"
+        android:background="@drawable/item_slot_background"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/filterGrid"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/itemRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

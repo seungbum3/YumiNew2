@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 배경색 -->
+    <solid android:color="#E7EBED"/>
+
+    <!-- 둥근 모서리 없애기 -->
+    <corners android:radius="0dp"/>
+</shape>

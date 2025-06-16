@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#B1C1CE">
+
+    <ImageView
+        android:id="@+id/friendProfileImage"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/error_image"
+        android:layout_marginEnd="12dp"
+        android:scaleType="centerCrop"/>
+
+    <TextView
+        android:id="@+id/friendName"
+        android:layout_width="0dp"
+        android:gravity="center_vertical"
+        android:layout_height="match_parent"
+        android:textSize="16sp"
+        android:layout_weight="1"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAccept"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            app:backgroundTint="#E7EBED"
+            app:useMaterialThemeColors="false"
+            android:text="수락"
+            android:textColor="#000000"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:textSize="14sp"/>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            app:backgroundTint="#E7EBED"
+            app:useMaterialThemeColors="false"
+            android:text="거절"
+            android:textColor="#000000"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:textSize="14sp"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        app:backgroundTint="#E7EBED"
+        app:useMaterialThemeColors="false"
+        android:text="차단"
+        android:textColor="#000000"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:textSize="14sp"/>
+
+
+
+</LinearLayout>
+</LinearLayout>
