@@ -92,7 +92,9 @@
             android:exported="false" />
         <activity
             android:name=".MainpageActivity"
-            android:exported="true">
+            android:exported="false"/>
+            <activity android:name=".OnboardingActivity"
+                android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

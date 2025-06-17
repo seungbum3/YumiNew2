@@ -1,6 +1,7 @@
 package com.example.yumi2
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import com.example.yumi2.adapter.ItemAdapter
 import com.example.yumi2.model.Item
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.Gson
 
 class ItemSelectionActivity : AppCompatActivity() {
 
@@ -21,6 +23,8 @@ class ItemSelectionActivity : AppCompatActivity() {
     private lateinit var toggleQuickSlot: ToggleButton
     private lateinit var itemAdapter: ItemAdapter
     private val selectedFilters = mutableSetOf<String>()
+    private var selectedChampionId: String? = null
+
 
     lateinit var firestore: FirebaseFirestore
     private var isQuickSlotMode = false  // 퀵 슬롯 모드 여부
@@ -51,12 +55,34 @@ class ItemSelectionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_item_selection)
 
+        val btnUseInPost = findViewById<Button>(R.id.btnUseInPost)
+        btnUseInPost.setOnClickListener {
+            val adapter = slotRecyclerView.adapter as? SlotAdapter ?: return@setOnClickListener
+            val currentSlots = adapter.getSlotItems()
+
+            if (currentSlots.all { it == null }) {
+                Toast.makeText(this, "최소 하나 이상의 아이템을 선택해주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val selectedItemsJson = Gson().toJson(currentSlots)
+            val resultIntent = Intent().apply {
+                putExtra("selectedItemsJson", selectedItemsJson)
+                putExtra("championId", selectedChampionId)
+            }
+            setResult(RESULT_OK, resultIntent)
+            finish()
+
+        }
+
+
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid.isNullOrEmpty()) {
             Toast.makeText(this, "로그인 정보가 없습니다!", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
+
 
         Log.d("UserUID", "현재 로그인한 사용자의 UID: $uid")
 

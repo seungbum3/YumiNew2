@@ -12,7 +12,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.yumi2.ItemSelectionActivity
 import com.example.yumi2.R
+import com.example.yumi2.model.Item
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -26,10 +28,16 @@ class WritingActivity : AppCompatActivity() {
     private var imageUri: Uri? = null
     private lateinit var currentCategory: String
     private lateinit var selectedImageView: ImageView
+    private var selectedItems: List<Item?> = emptyList()
+    companion object {
+        const val ITEM_SELECTION_REQUEST_CODE = 1010
+    }
 
     // 해시태그 관련 변수
     private lateinit var hashtagTextView: TextView
     private var hashtagList = arrayListOf<String>()
+    private var selectedChampionId: String? = null  // ← 요거 선언 빠졌어!
+
 
     // 편집 모드 여부를 판단할 변수: "temp_post"가 있으면 편집 모드로 간주 (Post 객체)
     private var editingTempPost: Post? = null
@@ -51,6 +59,15 @@ class WritingActivity : AppCompatActivity() {
         if (editingTempPost != null) {
             currentCategory = editingTempPost!!.category
         }
+
+        val btnSelectItems = findViewById<Button>(R.id.btnSelectItems)
+        val textSelectedItems = findViewById<TextView>(R.id.textSelectedItems)
+
+        btnSelectItems.setOnClickListener {
+            val intent = Intent(this, ItemSelectionActivity::class.java)
+            startActivityForResult(intent, ITEM_SELECTION_REQUEST_CODE)
+        }
+
 
         val titleEditText = findViewById<EditText>(R.id.editText)
         val contentEditText = findViewById<EditText>(R.id.editTextContent)
@@ -154,7 +171,20 @@ class WritingActivity : AppCompatActivity() {
         } else if (requestCode == 200 && resultCode == Activity.RESULT_OK) {
             hashtagList = data?.getStringArrayListExtra("hashtags") ?: arrayListOf()
             hashtagTextView.text = hashtagList.joinToString(", ")
+        } else if (requestCode == ITEM_SELECTION_REQUEST_CODE && resultCode == RESULT_OK) {
+            val itemsJson = data?.getStringExtra("selectedItemsJson")
+            if (itemsJson != null) {
+                val type = object : TypeToken<List<Item?>>() {}.type
+                selectedItems = Gson().fromJson(itemsJson, type)
+            }
+            selectedChampionId = data?.getStringExtra("championId")
+
+            val names = selectedItems.mapNotNull { it?.name }
+            val text = if (names.isEmpty()) "없음" else names.joinToString(", ")
+            findViewById<TextView>(R.id.textSelectedItems).text = "아이템: $text"
         }
+
+
     }
 
     // 이미지 업로드 함수
@@ -205,7 +235,9 @@ class WritingActivity : AppCompatActivity() {
                 "imageUrl" to imageUrl,
                 "uid" to FirebaseAuth.getInstance().currentUser?.uid,  // << 꼭 포함!
                 "nickname" to nickname,
-                "hashtags" to hashtagList
+                "hashtags" to hashtagList,
+                "itemBuild" to selectedItems.mapNotNull { it?.name }, // ← 이 줄만 추가!
+                "championId" to selectedChampionId  // ✅ 이 줄을 추가해야 돼!
             )
             postRef.set(postMap)
                 .addOnSuccessListener {
@@ -241,7 +273,10 @@ class WritingActivity : AppCompatActivity() {
                 "imageUrl" to imageUrl,
                 "uid" to FirebaseAuth.getInstance().currentUser?.uid,  // << 꼭 포함!
                 "nickname" to nickname,
-                "hashtags" to hashtagList
+                "hashtags" to hashtagList,
+                "itemBuild" to selectedItems.mapNotNull { it?.name }
+                ,  // ✅ 아이템도 잊지 말고
+                "championId" to selectedChampionId
             )
             db.collection("posts").document(postId)
                 .update(updatedData as Map<String, Any>)

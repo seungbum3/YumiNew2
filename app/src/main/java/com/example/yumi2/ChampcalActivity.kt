@@ -39,6 +39,18 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_champcal)
 
+        // ✅ 수정된 코드
+        val champId = intent.getStringExtra("championId")
+        if (!champId.isNullOrEmpty()) {
+            currentChampionId = champId
+            loadChampionData(champId, currentLevel)
+        }
+
+        // 🔥 PostDetailFragment에서 넘어온 itemBuild가 있는 경우 자동 적용
+        intent.getStringArrayListExtra("itemBuild")?.let { receivedIds ->
+            loadSavedConfiguration(receivedIds)
+        }
+
         championSelector = findViewById(R.id.championSelector)
         championNameText = findViewById(R.id.championName)
         levelText = findViewById(R.id.levelText)

@@ -79,6 +79,14 @@
                 android:backgroundTint="#80929F"
                 android:textColor="#E7EBED"
                 android:layout_marginStart="16dp"/>
+            <Button
+                android:id="@+id/btnUseInPost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="글쓰기에 사용"
+                android:backgroundTint="#80929F"
+                android:textColor="#E7EBED"
+                android:layout_marginStart="16dp"/>
         </LinearLayout>
     </LinearLayout>
 

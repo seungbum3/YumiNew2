@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.example.yumi2.ChampcalActivity
 import com.example.yumi2.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -244,6 +245,92 @@ data class Comment(
                     // 해시태그 처리 (필요시)
                     val hashtags = document.get("hashtags") as? List<String>
                     hashtagTextView.text = hashtags?.joinToString(" ") ?: ""
+
+                    // ✅ 아이템 빌드 텍스트뷰 설정 및 저장 버튼 처리
+                    val itemBuild = document.get("itemBuild") as? List<String> ?: emptyList()
+                    val textItemBuild = view?.findViewById<TextView>(R.id.textItemBuild)
+                    val btnSaveItemBuild = view?.findViewById<Button>(R.id.btnSaveItemBuild)
+
+                    if (itemBuild.isEmpty()) {
+                        textItemBuild?.visibility = View.GONE
+                        btnSaveItemBuild?.visibility = View.GONE
+                    } else {
+                        textItemBuild?.visibility = View.VISIBLE
+                        val postUid = document.getString("uid")  // 작성자 UID
+                        val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+
+                        // 본인이 작성한 글이면 저장 버튼 숨기기
+                        if (postUid == currentUid) {
+                            btnSaveItemBuild?.visibility = View.GONE
+                        } else {
+                            btnSaveItemBuild?.visibility = View.VISIBLE
+                        }
+                        textItemBuild?.text = "아이템: ${itemBuild.joinToString(", ")}"
+
+                        btnSaveItemBuild?.setOnClickListener {
+                            val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
+
+                            val inputView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_title_input, null)
+                            val editTitle = inputView.findViewById<EditText>(R.id.editTextDialogTitle)
+
+                            AlertDialog.Builder(requireContext())
+                                .setTitle("제목을 적어주세요")
+                                .setView(inputView)
+                                .setPositiveButton("다음") { _, _ ->
+                                    val inputTitle = editTitle.text.toString().trim()
+                                    if (inputTitle.isEmpty()) {
+                                        Toast.makeText(requireContext(), "제목을 입력해주세요", Toast.LENGTH_SHORT).show()
+                                        return@setPositiveButton
+                                    }
+
+                                    // 🔥 이름 → 아이템 ID 변환해서 저장하는 로직
+                                    val db = FirebaseFirestore.getInstance()
+                                    val itemsRef = db.collection("items")
+
+                                    itemsRef.get().addOnSuccessListener { snapshot ->
+                                        val nameToIdMap = snapshot.documents.associate {
+                                            it.getString("name") to it.getString("id")
+                                        }
+
+                                        val itemIds = itemBuild.mapNotNull { nameToIdMap[it] }
+
+                                        val saveData = hashMapOf(
+                                            "configName" to inputTitle,
+                                            "slots" to itemIds
+                                        )
+
+                                        db.collection("users")
+                                            .document(currentUid)
+                                            .collection("savedConfigurations")
+                                            .add(saveData)
+                                            .addOnSuccessListener {
+                                                Toast.makeText(context, "아이템 저장이 되었습니다", Toast.LENGTH_SHORT).show()
+
+                                                AlertDialog.Builder(requireContext())
+                                                    .setTitle("챔피언 능력치 계산기로 이동하겠습니까?")
+                                                    .setPositiveButton("이동") { _, _ ->
+                                                        val intent = Intent(requireContext(), ChampcalActivity::class.java)
+                                                        intent.putStringArrayListExtra("itemBuild", ArrayList(itemIds))
+                                                        intent.putExtra("championId", document.getString("championId") ?: "")
+                                                        startActivity(intent)
+                                                    }
+                                                    .setNegativeButton("취소", null)
+                                                    .show()
+                                            }
+                                            .addOnFailureListener { e ->
+                                                Toast.makeText(context, "아이템 저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            }
+                                    }.addOnFailureListener { e ->
+                                        Toast.makeText(context, "아이템 데이터 로드 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                .setNegativeButton("취소", null)
+                                .show()
+                        }
+
+
+                    }
+
 
                     // currentPost 세팅 (수정/삭제 기능)
                     currentPost = document.toObject(Post::class.java)?.copy(postId = document.id)

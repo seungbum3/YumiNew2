@@ -87,10 +87,10 @@
 
     <FrameLayout
         android:id="@+id/fragment_container"
-        android:layout_width="384dp"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/rounded_scrollview"
+        android:background="@drawable/framg"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
         app:layout_constraintStart_toStartOf="parent"
