@@ -54,6 +54,9 @@
             android:name=".BanPickChampion"
             android:exported="false" />
         <activity
+            android:name=".ChampionCompareActivity"
+            android:exported="false" />
+        <activity
             android:name=".NameSearchMainActivity"
             android:exported="false" />
         <activity

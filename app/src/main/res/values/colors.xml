@@ -11,6 +11,7 @@
     <color name="tier_grandmaster">#FF4500</color>
     <color name="tier_challenger">#FFD700</color>
     <color name="black">#000000</color>
-
+    <color name="yumi_blue">#86B7FF</color>
+    <color name="yumi_red">#FF9494</color>
     <color name="my_custom_blue_50">#80007BB8</color>
 </resources>

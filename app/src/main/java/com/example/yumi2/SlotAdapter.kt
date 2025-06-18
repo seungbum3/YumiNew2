@@ -29,17 +29,6 @@ class SlotAdapter : RecyclerView.Adapter<SlotAdapter.SlotViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SlotViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_slot, parent, false)
-        val layoutParams = view.layoutParams
-
-        // 전체 너비를 6등분
-        val totalWidth = parent.measuredWidth - (parent.paddingStart + parent.paddingEnd)
-        val itemWidth = totalWidth / 6
-        val itemHeight = (itemWidth * 1.5).toInt()
-
-        layoutParams.width = itemWidth
-        layoutParams.height = itemHeight
-        view.layoutParams = layoutParams
-
         return SlotViewHolder(view)
     }
 

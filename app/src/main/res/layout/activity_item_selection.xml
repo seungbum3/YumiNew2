@@ -54,7 +54,8 @@
             android:layout_height="80dp"
             android:padding="0dp"
             android:background="@android:color/transparent"
-            android:clipToPadding="false"/>
+            android:clipToPadding="false"
+            android:overScrollMode="never"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -299,8 +300,10 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/itemRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:layout_marginTop="8dp"/>
     </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -67,6 +68,22 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
         }
         settingsIcon.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+
+        // 마이페이지에서 큼지막한 버튼3개
+        // onCreate 내부에 추가
+        findViewById<CardView>(R.id.btnMyItem).setOnClickListener {
+            // 나만의 즐겨찾기 아이템 페이지로 이동
+            startActivity(Intent(this, ItemSelectionActivity::class.java))
+        }
+        findViewById<CardView>(R.id.btnChampCalc).setOnClickListener {
+            // 챔피언 수치 계산 페이지로 이동
+            startActivity(Intent(this, ChampcalActivity::class.java))
+        }
+        findViewById<CardView>(R.id.btnThird).setOnClickListener {
+            // 챔피언 비교 해보기 페이지로 이동
+            startActivity(Intent(this, ChampionCompareActivity::class.java))
         }
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
