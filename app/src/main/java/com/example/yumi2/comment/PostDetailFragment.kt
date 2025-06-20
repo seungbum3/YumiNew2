@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.bumptech.glide.Glide
 import com.example.yumi2.ChampcalActivity
 import com.example.yumi2.R
 import com.google.firebase.auth.FirebaseAuth
@@ -33,7 +34,9 @@ data class Post(
     val imageUrl: String? = null,
     val uid: String? = null,        // 작성자 UID
     val nickname: String? = null,   // 작성자 닉네임
-    val hashtags: List<String> = emptyList()  // 해시태그 필드 추가
+    val hashtags: List<String> = emptyList(),  // 해시태그 필드 추가
+    val itemBuild: List<String>? = null, // ← 추가
+    val championId: String? = null       // ← 추가
 )
 
 data class Reply(
@@ -53,15 +56,16 @@ data class Comment(
     val replies: List<Reply> = emptyList()
 )
 
-    class PostDetailFragment : Fragment() {
+class PostDetailFragment : Fragment() {
 
     private lateinit var firestore: FirebaseFirestore
     private var postId: String = ""
     private var postAuthorUid: String = ""
+    private lateinit var itemImageContainer: LinearLayout
+
 
     // 하이라이트할 댓글 ID
     private var highlightCommentId: String? = null
-
     // 게시글 UI 요소
     private lateinit var detailPostTitle: TextView
     private lateinit var detailPostContent: TextView
@@ -103,6 +107,8 @@ data class Comment(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.activity_post_detail, container, false)
+
+        itemImageContainer = view.findViewById(R.id.itemImageContainer)
 
         // 게시글 UI 초기화
         detailPostTitle = view.findViewById(R.id.detail_post_title)
@@ -162,63 +168,63 @@ data class Comment(
         return view
     }
 
-        private fun sendFriendRequestFromDetail(targetUid: String, targetNickname: String?) {
-            val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-            val db = FirebaseFirestore.getInstance()
+    private fun sendFriendRequestFromDetail(targetUid: String, targetNickname: String?) {
+        val myUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val db = FirebaseFirestore.getInstance()
 
-            // 1. 이미 친구인지 확인
-            db.collection("users").document(myUid).collection("friends").document(targetUid)
-                .get()
-                .addOnSuccessListener { doc ->
-                    if (doc.exists()) {
-                        Toast.makeText(context, "이미 친구입니다!", Toast.LENGTH_SHORT).show()
-                        return@addOnSuccessListener
-                    }
-                    // 2. 친구 요청 중복 확인 (이미 요청했는지)
-                    db.collection("users").document(targetUid)
-                        .collection("friend_requests").document(myUid)
-                        .get()
-                        .addOnSuccessListener { reqDoc ->
-                            if (reqDoc.exists()) {
-                                Toast.makeText(context, "이미 친구 요청을 보냈어요!", Toast.LENGTH_SHORT).show()
-                                return@addOnSuccessListener
-                            }
-
-                            // 3. 내 닉네임 조회 후 요청/알림 전송
-                            db.collection("user_profiles").document(myUid).get()
-                                .addOnSuccessListener { profileDoc ->
-                                    val myNickname = profileDoc.getString("nickname") ?: "알 수 없음"
-
-                                    // 친구 요청 저장
-                                    db.collection("users").document(targetUid)
-                                        .collection("friend_requests").document(myUid)
-                                        .set(
-                                            mapOf(
-                                                "senderUid" to myUid,
-                                                "receiverUid" to targetUid,
-                                                "timestamp" to System.currentTimeMillis()
-                                            )
-                                        ).addOnSuccessListener {
-                                            // 알림 전송
-                                            db.collection("users").document(targetUid)
-                                                .collection("notifications")
-                                                .add(
-                                                    mapOf(
-                                                        "type" to "friend_request",
-                                                        "senderUid" to myUid,
-                                                        "senderNickname" to myNickname,
-                                                        "timestamp" to System.currentTimeMillis()
-                                                    )
-                                                )
-                                            Toast.makeText(context, "친구 요청을 보냈습니다!", Toast.LENGTH_SHORT).show()
-                                        }
-                                }
-                        }
+        // 1. 이미 친구인지 확인
+        db.collection("users").document(myUid).collection("friends").document(targetUid)
+            .get()
+            .addOnSuccessListener { doc ->
+                if (doc.exists()) {
+                    Toast.makeText(context, "이미 친구입니다!", Toast.LENGTH_SHORT).show()
+                    return@addOnSuccessListener
                 }
-        }
+                // 2. 친구 요청 중복 확인 (이미 요청했는지)
+                db.collection("users").document(targetUid)
+                    .collection("friend_requests").document(myUid)
+                    .get()
+                    .addOnSuccessListener { reqDoc ->
+                        if (reqDoc.exists()) {
+                            Toast.makeText(context, "이미 친구 요청을 보냈어요!", Toast.LENGTH_SHORT).show()
+                            return@addOnSuccessListener
+                        }
+
+                        // 3. 내 닉네임 조회 후 요청/알림 전송
+                        db.collection("user_profiles").document(myUid).get()
+                            .addOnSuccessListener { profileDoc ->
+                                val myNickname = profileDoc.getString("nickname") ?: "알 수 없음"
+
+                                // 친구 요청 저장
+                                db.collection("users").document(targetUid)
+                                    .collection("friend_requests").document(myUid)
+                                    .set(
+                                        mapOf(
+                                            "senderUid" to myUid,
+                                            "receiverUid" to targetUid,
+                                            "timestamp" to System.currentTimeMillis()
+                                        )
+                                    ).addOnSuccessListener {
+                                        // 알림 전송
+                                        db.collection("users").document(targetUid)
+                                            .collection("notifications")
+                                            .add(
+                                                mapOf(
+                                                    "type" to "friend_request",
+                                                    "senderUid" to myUid,
+                                                    "senderNickname" to myNickname,
+                                                    "timestamp" to System.currentTimeMillis()
+                                                )
+                                            )
+                                        Toast.makeText(context, "친구 요청을 보냈습니다!", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                    }
+            }
+    }
 
 
-        private fun loadPostDetail() {
+    private fun loadPostDetail() {
         if (postId.isEmpty()) return
 
         firestore.collection("posts").document(postId)
@@ -234,13 +240,14 @@ data class Comment(
                     val timestamp = document.getLong("timestamp") ?: 0L
                     detailPostTimestamp.text = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(timestamp))
 
-                    // 이미지 처리 (필요시)
                     val imageUrl = document.getString("imageUrl")
                     if (!imageUrl.isNullOrEmpty()) {
+                        detailPostImage.visibility = View.VISIBLE
                         detailPostImage.load(imageUrl)
                     } else {
-                        detailPostImage.setImageResource(R.drawable.placeholder_image)
+                        detailPostImage.visibility = View.GONE
                     }
+
 
                     // 해시태그 처리 (필요시)
                     val hashtags = document.get("hashtags") as? List<String>
@@ -266,6 +273,33 @@ data class Comment(
                             btnSaveItemBuild?.visibility = View.VISIBLE
                         }
                         textItemBuild?.text = "아이템: ${itemBuild.joinToString(", ")}"
+
+                        // 💡 [2] 아이템 이미지 불러오기 추가! (버튼 리스너 밖)
+                        val db = FirebaseFirestore.getInstance()
+                        db.collection("items")
+                            .whereIn("name", itemBuild)
+                            .get()
+                            .addOnSuccessListener { snapshot ->
+                                itemImageContainer.removeAllViews()
+                                for (doc in snapshot.documents) {
+                                    val imageUrl = doc.getString("imageUrl") ?: continue
+                                    val imageView = ImageView(requireContext()).apply {
+                                        layoutParams = LinearLayout.LayoutParams(100, 100).apply {
+                                            setMargins(8, 8, 8, 8)
+                                        }
+                                        scaleType = ImageView.ScaleType.CENTER_CROP
+                                    }
+                                    Glide.with(this@PostDetailFragment)
+                                        .load(imageUrl)
+                                        .placeholder(R.drawable.placeholder_image)
+                                        .into(imageView)
+                                    itemImageContainer.addView(imageView)
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(context, "아이템 이미지 불러오기 실패: ${e.message}", Toast.LENGTH_SHORT).show()
+                            }
+
 
                         btnSaveItemBuild?.setOnClickListener {
                             val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
@@ -346,30 +380,49 @@ data class Comment(
         super.onViewCreated(view, savedInstanceState)
 
         if (postId.isNotEmpty()) {
-            // 1. 게시글 본문 데이터 불러오기!
-            loadPostDetail()
-
-            // 2. 조회수 증가 + 댓글 불러오기(기존 코드)
             val postRef = firestore.collection("posts").document(postId)
-            postRef.update("views", FieldValue.increment(1))
-                .addOnSuccessListener {
-                    postRef.get().addOnSuccessListener { document ->
-                        val views = document.getLong("views") ?: 0
-                        detailPostViewCount.text = "조회수: $views"
+            postRef.get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val postUid = document.getString("uid")
+                        val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+                        val currentViews = document.getLong("views") ?: 0
+
+                        if (postUid != null && postUid != currentUid) {
+                            postRef.update("views", FieldValue.increment(1))
+                                .addOnSuccessListener {
+                                    detailPostViewCount.text = "조회수: ${currentViews + 1}"
+                                    loadPostDetail()  // 🔥 조회수 증가 후에 게시글 내용 불러오기
+                                }
+                                .addOnFailureListener { e ->
+                                    Log.e("FirestoreError", "조회수 증가 실패: ${e.message}")
+                                    detailPostViewCount.text = "조회수: $currentViews"
+                                    loadPostDetail()
+                                }
+                        } else {
+                            detailPostViewCount.text = "조회수: $currentViews"
+                            loadPostDetail()
+                        }
+
+                    } else {
+                        Toast.makeText(context, "게시글이 존재하지 않습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
                 .addOnFailureListener { e ->
-                    Log.e("FirestoreError", "조회수 증가 실패: ${e.message}")
+                    Toast.makeText(context, "게시글 로딩 실패: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
+
+            view.findViewById<ImageView>(R.id.backButton).setOnClickListener {
+                requireActivity().onBackPressed()
+            }
+
             loadComments()
         } else {
             Toast.makeText(context, "Invalid post ID", Toast.LENGTH_SHORT).show()
         }
-
-        view.findViewById<ImageView>(R.id.backButton).setOnClickListener {
-            requireActivity().onBackPressed()
-        }
     }
+
+
 
     private fun createNotificationIfEnabled(
         recipientUid: String,

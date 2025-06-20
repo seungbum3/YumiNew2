@@ -9,9 +9,11 @@ import android.provider.MediaStore
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.example.yumi2.ItemSelectionActivity
 import com.example.yumi2.R
 import com.example.yumi2.model.Item
@@ -182,15 +184,38 @@ class WritingActivity : AppCompatActivity() {
             val names = selectedItems.mapNotNull { it?.name }
             val text = if (names.isEmpty()) "없음" else names.joinToString(", ")
             findViewById<TextView>(R.id.textSelectedItems).text = "아이템: $text"
-        }
 
+            // 💡 아이템 이미지 보여주기
+            val itemImageContainer = findViewById<LinearLayout>(R.id.itemImageContainer)
+            itemImageContainer.removeAllViews()
+            for (item in selectedItems) {
+                val imageView = ImageView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(100, 100).apply {
+                        setMargins(8, 8, 8, 8)
+                    }
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                }
+                Glide.with(this)
+                    .load(item?.imageUrl)
+                    .placeholder(R.drawable.placeholder_image)
+                    .into(imageView)
+                itemImageContainer.addView(imageView)
+            }
+        }
 
     }
 
-    // 이미지 업로드 함수
     private fun uploadImageToFirebase(uri: Uri, callback: (String) -> Unit) {
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+        if (currentUid == null) {
+            Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val fileName = "${System.currentTimeMillis()}.jpg"
         val storageRef = FirebaseStorage.getInstance()
-            .reference.child("post_images/${System.currentTimeMillis()}.jpg")
+            .reference.child("post_images/$currentUid/$fileName")
+
         storageRef.putFile(uri).addOnSuccessListener {
             storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
                 callback(downloadUri.toString())

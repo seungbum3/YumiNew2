@@ -119,6 +119,7 @@
                 android:layout_height="200dp"
                 android:layout_marginTop="8dp"
                 android:scaleType="centerCrop"
+                android:visibility="visible"
                 app:layout_constraintTop_toBottomOf="@id/ll_post_subinfo"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -153,7 +154,17 @@
                 app:layout_constraintTop_toBottomOf="@id/detail_post_content"
                 app:layout_constraintStart_toStartOf="parent" />
 
-            <!-- 아이템 저장 버튼 -->
+            <LinearLayout
+                android:id="@+id/itemImageContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp"
+                android:gravity="start"
+                app:layout_constraintTop_toBottomOf="@id/textItemBuild"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <!-- 3. 아이템 저장 버튼 (위치 수정!) -->
             <Button
                 android:id="@+id/btnSaveItemBuild"
                 android:layout_width="wrap_content"
@@ -161,8 +172,10 @@
                 android:layout_marginTop="4dp"
                 android:text="아이템 저장"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/textItemBuild"
+                app:layout_constraintTop_toBottomOf="@id/itemImageContainer"
                 app:layout_constraintStart_toStartOf="parent" />
+            <!-- 아이템 이미지 표시용 LinearLayout 추가 -->
+
 
             <!-- [댓글] 텍스트뷰 -->
             <TextView
