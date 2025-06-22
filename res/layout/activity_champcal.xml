@@ -1,0 +1,148 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#E7EBED"> <!-- 강한 배경 -->
+
+    <!-- 상단 왼쪽 뒤로가기 버튼 -->
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="24dp"
+        android:src="@drawable/ic_back"
+        android:contentDescription="뒤로 가기"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- 스크롤 뷰 내부 밝은 배경 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/btnBack"
+        android:background="#E7EBED"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- 챔피언 선택 영역 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="#B1C1CE"
+                android:padding="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginHorizontal="4dp"
+                android:backgroundTint="#B1C1CE"
+                android:elevation="4dp">
+
+                <FrameLayout
+                    android:id="@+id/championSelector"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="#E7EBED">
+
+                    <TextView
+                        android:id="@+id/championSelectorText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="챔피언 선택"
+                        android:textSize="14sp"
+                        android:textColor="#2C2C2C"
+                        android:layout_gravity="center"/>
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/championName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="챔피언 이름"
+                    android:textSize="16sp"
+                    android:textColor="#1A1A1A"
+                    android:layout_marginStart="30dp"/>
+            </LinearLayout>
+
+            <!-- 레벨 설정 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="12dp">
+                <Button
+                    android:id="@+id/btnLevelMinus"
+                    android:layout_width="75dp"
+                    android:layout_height="50dp"
+                    android:backgroundTint="#B1C1CE"
+                    android:text="-"
+                    android:gravity="center"
+                    android:textColor="#000000"
+                    android:textSize="30sp"
+                    android:padding="0dp"
+                    />
+                <TextView
+                    android:id="@+id/levelText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="레벨 : 1"
+                    android:textColor="#1A1A1A"
+                    android:textSize="16sp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp" />
+                <Button
+                    android:id="@+id/btnLevelPlus"
+                    android:layout_width="75dp"
+                    android:layout_height="50dp"
+                    android:backgroundTint="#B1C1CE"
+                    android:text="+"
+                    android:textColor="#000000"
+                    android:textSize="25sp"
+                    android:padding="0dp"/>
+            </LinearLayout>
+
+            <!-- 아이템 불러오기 버튼 -->
+            <Button
+                android:id="@+id/btnLoadItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="나만의 아이템 세트 만들러가기"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:backgroundTint="#B1C1CE"
+                android:layout_marginTop="16dp" />
+            <Button
+                android:id="@+id/btnResetItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="아이템 초기화"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:backgroundTint="#B1C1CE"
+                android:layout_marginTop="8dp"/>
+
+            <!-- 아이템 슬롯 -->
+            <LinearLayout
+                android:id="@+id/itemSlotContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"/>
+
+            <!-- 능력치 테이블 -->
+            <TableLayout
+                android:id="@+id/statsTable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"/>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 다크 모드일 때 사용할 메인 배경색 -->
+    <color name="main_background">#2C2C2C</color>
+    <color name="tto">#242424</color>
+    <color name="bottom_nav_item_color">#656565</color>
+    <color name="hello">#2C2C2C</color>
+
+    <!-- 필요하다면 버튼, 텍스트 등 다른 다크용 색상도 추가 -->
+    <!-- 예: <color name="button_bg">#3A3F44</color> -->
+</resources>

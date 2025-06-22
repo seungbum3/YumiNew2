@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 예를 들어, "마이페이지" 카테고리가 category1이라 가정 -->
+    <item
+        android:id="@+id/category1"
+        android:icon="@drawable/ic_category1"
+        android:title="메인화면" />
+    <item
+        android:id="@+id/category2"
+        android:icon="@drawable/ic_category2"
+        android:title="커뮤니티" />
+    <item
+        android:id="@+id/category3"
+        android:icon="@drawable/ic_category3"
+        android:title="모의밴픽" />
+    <item
+        android:id="@+id/category4"
+        android:icon="@drawable/ic_category4"
+        android:title="마이페이지" />
+</menu>
