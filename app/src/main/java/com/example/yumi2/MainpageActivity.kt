@@ -31,7 +31,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.DocumentChange
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import com.example.yumi2.alarm.NotificationActivity
 import com.example.yumi2.comment.MainActivity
@@ -52,7 +51,6 @@ class MainpageActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        com.example.yumi2.alarm.util.AppNotificationManager.loadNotificationSetting(this)
         setContentView(R.layout.mainpage)
         SettingsActivity.applyUserTheme(this)
 
@@ -67,7 +65,6 @@ class MainpageActivity : AppCompatActivity() {
             )
         }
 
-
         createNotificationChannel()
         listenForNewNotifications()
 
@@ -80,7 +77,7 @@ class MainpageActivity : AppCompatActivity() {
 
         noticeButton.setOnClickListener {
             val url =
-                "https://www.leagueoflegends.com/ko-kr/news/game-updates/patch-2025-s1-3-notes/"
+                "https://www.leagueoflegends.com/ko-kr/news/game-updates/patch-25-12-notes/"
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
         }
@@ -126,7 +123,7 @@ class MainpageActivity : AppCompatActivity() {
                 }
 
                 R.id.category3 -> {
-                    startActivity(Intent(this, BanPickMain::class.java))
+                    startActivity(Intent(this, Main3Activity::class.java))
                     finish()
                     true
                 }
@@ -174,13 +171,7 @@ class MainpageActivity : AppCompatActivity() {
     }
 
     private fun showLocalNotification(sender: String, type: String) {
-        // ① 알림 설정 OFF면 바로 return
-        if (!com.example.yumi2.alarm.util.AppNotificationManager.notificationOn) {
-            Log.d("알림", "댓글/답글 알림이 꺼져있어서 무시됨")
-            return
-        }
-
-        val notificationId = 100 // 항상 같은 ID 사용
+        val notificationId = System.currentTimeMillis().toInt()
         val title = if (type == "reply") "$sender 님이 답글을 남겼습니다" else "$sender 님이 댓글을 남겼습니다"
         val body = "앱 내 알림센터에서 확인하세요"
 
@@ -217,6 +208,7 @@ class MainpageActivity : AppCompatActivity() {
             Log.e("MainpageActivity", "알림 전송 실패: 권한 부족", e)
         }
     }
+
     fun getRotationDateRange(): String {
         val today = java.util.Calendar.getInstance()
 
@@ -232,4 +224,5 @@ class MainpageActivity : AppCompatActivity() {
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
         return "${sdf.format(startDate)} ~ ${sdf.format(endDate)}"
     }
+
 }

@@ -3,8 +3,10 @@ package com.example.yumi2
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
@@ -31,18 +33,30 @@ class ChampionDetailActivity : AppCompatActivity() {
     private lateinit var startAtk1: ImageView
     private lateinit var startAtk2: ImageView
     private lateinit var boot1: ImageView
-    private lateinit var boot2: ImageView
     private lateinit var core1: ImageView
     private lateinit var core2: ImageView
     private lateinit var core3: ImageView
+
+    private lateinit var scrollContent: ScrollView
+    private lateinit var tvNoData: TextView
+    private lateinit var layoutNoData: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.champion_detail)
 
+        // 1) 새로 추가한 뷰들 바인딩
+        scrollContent = findViewById(R.id.scrollContent)
+        tvNoData      = findViewById(R.id.tvNoData)
+        layoutNoData = findViewById(R.id.layoutNoData)
+
         // 뒤로 가기 버튼
         val btnBack: Button = findViewById(R.id.btnBack)
         btnBack.setOnClickListener {
+            startActivity(Intent(this, ChampionTierVowelActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.btnBackNoData).setOnClickListener {
             startActivity(Intent(this, ChampionTierVowelActivity::class.java))
         }
 
@@ -78,7 +92,6 @@ class ChampionDetailActivity : AppCompatActivity() {
         startAtk1   = findViewById(R.id.imgStartAtk1)
         startAtk2   = findViewById(R.id.imgStartAtk2)
         boot1       = findViewById(R.id.imgBoot1)
-        boot2       = findViewById(R.id.imgBoot2)
         core1       = findViewById(R.id.imgCore1)
         core2       = findViewById(R.id.imgCore2)
         core3       = findViewById(R.id.imgCore3)
@@ -106,9 +119,19 @@ class ChampionDetailActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { doc ->
                 if (!doc.exists()) {
+                    // 문서가 없으면 스크롤 컨텐츠 숨기고 안내문만 보이게
+                    scrollContent.visibility = View.GONE
+                    layoutNoData.visibility  = View.VISIBLE
+                    tvNoData.visibility      = View.VISIBLE
+                    tvNoData.text = "$championName 챔피언은\n현재 데이터가 없습니다"
                     Log.w("ChampionDetail", "Firestore에 문서 없음: $championName")
                     return@addOnSuccessListener
                 }
+
+                // 문서가 있으면 기존 대로 컨텐츠 채우고, 안내문은 숨김
+                scrollContent.visibility = View.VISIBLE
+                layoutNoData.visibility  = View.GONE
+                tvNoData.visibility      = View.GONE
 
                 // 1) 룬 트리 라벨 세팅
                 val primaryId   = (doc.getLong("runeTree") ?: 8000).toInt()
@@ -174,13 +197,16 @@ class ChampionDetailActivity : AppCompatActivity() {
                 loadItem(items["start_items_atk"]  as? List<Long>, 0, startAtk1)
                 loadItem(items["start_items_atk"]  as? List<Long>, 1, startAtk2)
                 loadItem(items["boots"]            as? List<Long>, 0, boot1)
-                loadItem(items["boots"]            as? List<Long>, 1, boot2)
                 loadItem(items["core"]             as? List<Long>, 0, core1)
                 loadItem(items["core"]             as? List<Long>, 1, core2)
                 loadItem(items["core"]             as? List<Long>, 2, core3)
 
             }
             .addOnFailureListener { e ->
+                // 실패 시에도 안내문만 띄우기
+                scrollContent.visibility = View.GONE
+                tvNoData.visibility      = View.VISIBLE
+                tvNoData.text = "데이터 가져오기 실패: ${e.message}"
                 Log.e("ChampionDetail", "Firestore 불러오기 실패: ${e.message}")
                 e.printStackTrace()
             }

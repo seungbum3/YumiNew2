@@ -44,14 +44,14 @@ class ChampionAdapter(
             val isPicked = BanPickChampionChoice.selectedChampions.contains(champion.id)
 
             if (isPicked) {
-                // 선택된 챔피언 → 흐리게 + X 표시 + 클릭 막기
                 championOverlay.visibility = View.VISIBLE
-                itemView.alpha = 1.0f
+                championOverlay.alpha = 1.0f      // ✅ X 아이콘 반투명 처리
+                championImage.alpha = 0.3f        // 이미지 흐리게
                 itemView.isEnabled = false
             } else {
-                // 선택되지 않은 챔피언
                 championOverlay.visibility = View.GONE
-                itemView.alpha = 1.0f
+                championOverlay.alpha = 1.0f
+                championImage.alpha = 1.0f
                 itemView.isEnabled = true
 
                 itemView.setOnClickListener {

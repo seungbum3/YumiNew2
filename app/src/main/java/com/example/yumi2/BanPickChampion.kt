@@ -1,14 +1,15 @@
 package com.example.yumi2
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.util.Log
-import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.yumi2.model.ChampionData
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.squareup.picasso.Picasso
 
 class BanPickChampion : AppCompatActivity() {
@@ -37,16 +38,19 @@ class BanPickChampion : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.banpick_champion)
+        ensureSelectionsInit()
 
         findViewById<Button>(R.id.PageBack).setOnClickListener { finish() }
 
         isTimerEnabled = intent.getBooleanExtra("timer_enabled", false)
         banPickTimeText = findViewById(R.id.BanPickTime)
         banPickTimeText.visibility = if (isTimerEnabled) TextView.VISIBLE else TextView.GONE
+        if (isTimerEnabled) startTimer()
 
         findViewById<TextView>(R.id.BlueTeam).text =
             intent.getStringExtra("blue_team_name") ?: "불루팀"
-        findViewById<TextView>(R.id.RedTeam).text = intent.getStringExtra("red_team_name") ?: "레드팀"
+        findViewById<TextView>(R.id.RedTeam).text =
+            intent.getStringExtra("red_team_name") ?: "레드팀"
 
         updatePickTitle()
 
@@ -60,58 +64,96 @@ class BanPickChampion : AppCompatActivity() {
 
         findViewById<Button>(R.id.Reset).setOnClickListener {
             currentPickIndex = 0
-            BanPickChampionChoice.selectedChampions.clear()
-            for (id in pickOrder) {
+            BanPickChampionChoice.resetSelections()
+            pickOrder.forEach { id ->
                 val iv = findViewById<ImageView>(id)
-                iv.setImageDrawable(null)
+                val name = resources.getResourceEntryName(id)
+                if (name.contains("ban")) iv.setImageResource(R.drawable.champion_ban)
+                else iv.setImageDrawable(null)
                 iv.setBackgroundColor(Color.parseColor("#434343"))
             }
             countDownTimer?.cancel()
             if (isTimerEnabled) {
                 banPickTimeText.visibility = TextView.VISIBLE
-                banPickTimeText.text = "20초"
+                banPickTimeText.text = "30초"
+                startTimer()
             }
             Toast.makeText(this, "초기화 완료", Toast.LENGTH_SHORT).show()
             updatePickTitle()
         }
+
+        findViewById<Button>(R.id.WhoWin).setOnClickListener {
+            // 1) 현재까지 선택된 20개 슬롯 리스트
+            val all = BanPickChampionChoice.selectedChampions
+            if (all.any { it.isBlank() }) {
+                Toast.makeText(this, "블루팀/레드팀 챔피언을 모두 선택해 주세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // 2) 정답 인덱스 배열
+            val blueBanIdxs  = listOf(0, 2, 4, 12, 14)
+            val redBanIdxs   = listOf(1, 3, 5, 13, 15)
+            val bluePickIdxs = listOf(6, 9, 10, 17, 18)
+            val redPickIdxs  = listOf(7, 8, 11, 16, 19)
+
+            // 3) 각 팀 밴/픽 리스트 추출
+            val blueBans  = blueBanIdxs .map { all[it] }
+            val redBans   = redBanIdxs  .map { all[it] }
+            val bluePicks = bluePickIdxs.map { all[it] }
+            val redPicks  = redPickIdxs .map { all[it] }
+
+            // 4) Intent 에 실어서 Prediction 화면으로
+            val intent = Intent(this, BanPickPredictionActivity::class.java).apply {
+                putStringArrayListExtra("blue_team", ArrayList(bluePicks))
+                putStringArrayListExtra("red_team",  ArrayList(redPicks))
+                putStringArrayListExtra("blue_bans", ArrayList(blueBans))
+                putStringArrayListExtra("red_bans",  ArrayList(redBans))
+                putExtra("blue_team_name", findViewById<TextView>(R.id.BlueTeam).text.toString())
+                putExtra("red_team_name",  findViewById<TextView>(R.id.RedTeam).text.toString())
+            }
+            startActivity(intent)
+        }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (currentPickIndex >= pickOrder.size) {
+            banPickTimeText.visibility = TextView.GONE
+            Toast.makeText(this, "이미 밴픽이 완료되었습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
     override fun onDestroy() {
         super.onDestroy()
+        BanPickChampionChoice.resetSelections()
         countDownTimer?.cancel()
+    }
+
+    private fun ensureSelectionsInit() {
+        if (BanPickChampionChoice.selectedChampions.size != pickOrder.size) {
+            BanPickChampionChoice.selectedChampions = MutableList(pickOrder.size) { "" }
+        }
     }
 
     private fun updatePickTitle() {
         val titleView = findViewById<TextView>(R.id.BanpickTitle)
-
-        // 🔁 모든 픽 영역 테두리 초기화
-        for (id in pickOrder) {
-            val iv = findViewById<ImageView>(id)
-            iv.background = ColorDrawable(Color.parseColor("#434343")) // 기본 배경색 복원
+        pickOrder.forEach { id ->
+            findViewById<ImageView>(id)
+                .background = ColorDrawable(Color.parseColor("#434343"))
         }
-
         if (currentPickIndex < pickOrder.size) {
-            val resName = resources.getResourceEntryName(pickOrder[currentPickIndex])
-            val viewId = pickOrder[currentPickIndex] // ✅ 여기서 선언
-
-            val isBan = resName.contains("ban")
-            val highlightView = findViewById<ImageView>(viewId)
-
-            // ✅ 테두리 색 구분 적용
-            val highlightDrawable = if (isBan) {
-                R.drawable.banpick_ban_highlight // 🔴 금지
-            } else {
-                R.drawable.banpick_highlight // 🔵 선택
-            }
-            highlightView.setBackgroundResource(highlightDrawable)
-
-            val team = when {
-                resName.startsWith("blue") -> "불루팀"
-                resName.startsWith("red") -> "레드팀"
-                else -> ""
-            }
-            val title = if (isBan) "$team 금지 챔피언 선택해주세요"
-            else "$team ${resName.filter { it.isDigit() }}번 챔피언 선택해주세요"
+            val id       = pickOrder[currentPickIndex]
+            val name     = resources.getResourceEntryName(id)
+            val isBan    = name.contains("ban")
+            val highlight= findViewById<ImageView>(id)
+            highlight.setBackgroundResource(
+                if (isBan) R.drawable.banpick_ban_highlight
+                else       R.drawable.banpick_highlight
+            )
+            val teamText = if (name.startsWith("blue")) "불루팀" else "레드팀"
+            val title    = if (isBan)
+                "$teamText 금지 챔피언 선택해주세요"
+            else
+                "$teamText ${name.filter { it.isDigit() }}번 챔피언 선택해주세요"
             titleView.text = title
             banPickTimeText.visibility = if (isTimerEnabled) TextView.VISIBLE else TextView.GONE
         } else {
@@ -121,40 +163,39 @@ class BanPickChampion : AppCompatActivity() {
     }
 
     private fun showChampionChoiceDialog() {
-        val dialog = BanPickChampionChoice.newInstance { champion ->
-            processChampionSelection(champion.id, champion.splashUrl, champion.iconUrl)
-        }
+        val dialog = BanPickChampionChoice.newInstance(
+            mode = "solo",
+            onChampionSelected = { champ ->
+                processChampionSelection(champ.id, champ.splashUrl, champ.iconUrl)
+            }
+        )
         dialog.show(supportFragmentManager, "ChampionDialog")
     }
 
     private fun startTimer() {
         countDownTimer?.cancel()
-        countDownTimer = object : CountDownTimer(20000, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                banPickTimeText.text = "${millisUntilFinished / 1000}초"
+        countDownTimer = object : CountDownTimer(30_000, 1_000) {
+            override fun onTick(ms: Long) {
+                banPickTimeText.text = "${ms/1000}초"
             }
-
             override fun onFinish() {
                 banPickTimeText.text = "0초"
                 if (currentPickIndex < pickOrder.size) {
-                    val unused = BanPickChampionChoice.allChampions.filterNot {
-                        BanPickChampionChoice.selectedChampions.contains(it.id)
-                    }
+                    val id = pickOrder[currentPickIndex]
+                    val name = resources.getResourceEntryName(id)
+                    val unused = BanPickChampionChoice.allChampions
+                        .filterNot { BanPickChampionChoice.selectedChampions.contains(it.id) }
                     if (unused.isNotEmpty()) {
-                        val randomChamp = unused.random()
-                        val viewId = pickOrder[currentPickIndex]
-                        val imageView = findViewById<ImageView>(viewId)
-                        val url = if (resources.getResourceEntryName(viewId).contains("ban")) {
-                            randomChamp.iconUrl
-                        } else {
-                            randomChamp.splashUrl ?: randomChamp.iconUrl
-                        }
-                        Picasso.get().load(url).into(imageView)
-                        BanPickChampionChoice.selectedChampions.add(randomChamp.id)
+                        val r = unused.random()
+                        val iv = findViewById<ImageView>(id)
+                        val url = if (name.contains("ban")) r.iconUrl else r.splashUrl ?: r.iconUrl
+                        if (url.isNotBlank()) Picasso.get().load(url).into(iv)
+                        BanPickChampionChoice.selectedChampions[currentPickIndex] = r.id
                         currentPickIndex++
                         Toast.makeText(
                             this@BanPickChampion,
-                            "${randomChamp.name} 자동 선택",
+                            if (name.contains("ban")) "금지 ${r.name} 자동 선택"
+                            else "${r.name} 자동 선택",
                             Toast.LENGTH_SHORT
                         ).show()
                         updatePickTitle()
@@ -165,25 +206,18 @@ class BanPickChampion : AppCompatActivity() {
         }.start()
     }
 
-    private fun processChampionSelection(championId: String, splashUrl: String?, iconUrl: String?) {
-        if (championId.isNotEmpty() && currentPickIndex < pickOrder.size) {
+    private fun processChampionSelection(id: String, splash: String?, icon: String?) {
+        if (id.isNotEmpty() && currentPickIndex < pickOrder.size) {
             val viewId = pickOrder[currentPickIndex]
-            val imageView = findViewById<ImageView>(viewId)
-            val resName = resources.getResourceEntryName(viewId)
-            val url = if (resName.contains("ban")) iconUrl else splashUrl ?: iconUrl
-            if (!url.isNullOrBlank()) {
-                Picasso.get().load(url).into(imageView)
-            } else {
-                Toast.makeText(this, "이미지 로딩 실패", Toast.LENGTH_SHORT).show()
-            }
-            BanPickChampionChoice.selectedChampions.add(championId)
+            val iv = findViewById<ImageView>(viewId)
+            val name = resources.getResourceEntryName(viewId)
+            val url = if (name.contains("ban")) icon else splash ?: icon
+            if (url?.isNotBlank() == true) Picasso.get().load(url).into(iv)
+            else Toast.makeText(this, "이미지 로딩 실패", Toast.LENGTH_SHORT).show()
+            BanPickChampionChoice.selectedChampions[currentPickIndex] = id
             currentPickIndex++
             updatePickTitle()
-
-            // ✅ 실제로 픽이 진행됐을 때만 타이머 시작
-            // if (isTimerEnabled && currentPickIndex < pickOrder.size) {
-               //  startTimer()
-            }
+            if (isTimerEnabled && currentPickIndex < pickOrder.size) startTimer()
         }
     }
-
+}

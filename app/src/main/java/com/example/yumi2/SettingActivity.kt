@@ -27,8 +27,6 @@ class SettingsActivity : AppCompatActivity() {
         val settingTexts = listOf(
             "로그아웃",
             "친구목록",
-            "나만의 아이템 즐겨찾기",
-            "챔피언 능력치 계산기",
             "알림 설정",
             "테마 설정",
             "회원탈퇴"
@@ -63,17 +61,6 @@ class SettingsActivity : AppCompatActivity() {
                 "알림 설정" -> {
                     itemView.setOnClickListener {
                         showNotificationSettingDialog()  // ★★★ 이 함수는 아래 단계에서 만들 예정!
-                    }
-                }
-                "나만의 아이템 즐겨찾기" -> {
-                    itemView.setOnClickListener {
-                        startActivity(Intent(this, ItemSelectionActivity::class.java))
-                    }
-                }
-                "챔피언 능력치 계산기" -> {
-                    itemView.setOnClickListener {
-                        val intent = Intent(this, ChampcalActivity::class.java)
-                        startActivity(intent)
                     }
                 }
                 "친구목록" -> {

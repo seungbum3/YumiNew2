@@ -27,7 +27,7 @@ import java.net.URL
 
 class SummonerViewModel : ViewModel() {
 
-    private val riotApiKey = "RGAPI-ee77d94c-6e35-459c-9818-efc8cc17bdd3"
+    private val riotApiKey = "RGAPI-0b181b1b-c02a-42b0-a58f-707fb197fcfd"
 
     private val repository = SummonerRepository()
 
@@ -59,12 +59,19 @@ class SummonerViewModel : ViewModel() {
                 )
                 _summonerInfo.value = response
                 Log.d("ViewModel", "✅ Riot ID 검색 성공: $response")
+
+                // 🔽 응답 받은 후 캐시된 전적 로딩 시도
+                response.puuid?.let { puuid ->
+                    loadRecentMatches(puuid, null)
+                }
+
             } catch (e: Exception) {
                 _summonerInfo.value = null
                 Log.e("ViewModel", "❌ Riot ID 검색 실패: ${e.message}")
             }
         }
     }
+
 
     // ✅ 2. 소환사명 기반 검색 → Summoner → PUUID → AccountDto 변환
     fun searchSummonerByName(name: String, uid: String) {
@@ -87,17 +94,35 @@ class SummonerViewModel : ViewModel() {
                     tagLine = account.tagLine,
                     profileIconId = summoner.profileIconId,
                     summonerLevel = summoner.summonerLevel,
-                    soloRank = null, // 필요 시 getRankInfo()로 채우기
+                    soloRank = null,
                     flexRank = null
                 )
 
                 _summonerInfo.value = result
                 Log.d("ViewModel", "✅ Summoner Name 검색 + Account 변환 성공: $result")
 
+                // 🔽 응답 받은 후 캐시된 전적 로딩 시도
+                result.puuid.let { puuid ->
+                    loadRecentMatches(puuid, null)
+                }
+
             } catch (e: Exception) {
                 _summonerInfo.value = null
                 Log.e("ViewModel", "❌ Summoner Name 검색 실패: ${e.message}")
             }
+        }
+    }
+
+
+    fun loadAllRecentMatchesSafely(puuid: String) {
+        viewModelScope.launch {
+            loadRecentMatches(puuid, null) // 전체 큐
+            delay(3000L)
+            loadRecentMatches(puuid, 420)  // 솔랭
+            delay(3000L)
+            loadRecentMatches(puuid, 440)  // 자랭
+            delay(3000L)
+            loadRecentMatches(puuid, 450)  // 칼바람
         }
     }
 
@@ -145,55 +170,88 @@ class SummonerViewModel : ViewModel() {
         }
     }
 
+    private val savingFlags = mutableSetOf<String>()  // 중복 저장 방지용
 
     fun loadRecentMatches(puuid: String, queue: Int? = null) {
         viewModelScope.launch {
-            delay(150L)
+            delay(1000L)
 
             val firestore = FirebaseFirestore.getInstance()
-            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
-
             val docId = if (queue == null) "${puuid}_all" else "${puuid}_queue$queue"
-            val docRef = firestore.collection("summoners").document(uid)
-                .collection("summoner_match_history").document(docId)
+            val docRef = firestore.collection("summoner_match_cache").document(docId)
+
+            Log.d("loadRecentMatches", "🚀 시작 — puuid=$puuid, queue=$queue, docId=$docId")
 
             // 1) 캐시 조회
-            val snapshot = docRef.get().await()
-            Log.d("loadRecentMatches", "📄 Firestore 조회: $docId, exists=${snapshot.exists()}")
-            val cachedItems = snapshot.toObject(MatchHistoryCache::class.java)?.matches ?: emptyList()
+            try {
+                val snapshot = docRef.get().await()
+                Log.d("loadRecentMatches", "📄 캐시 조회 성공 — 문서 존재 여부: ${snapshot.exists()}")
 
-            if (snapshot.exists() && cachedItems.isNotEmpty()) {
-                // 캐시가 있고, 비어있지 않을 때만 사용
-                Log.d("loadRecentMatches", "✅ 캐시 사용됨. match 개수: ${cachedItems.size}")
-                _matchHistoryList.value = cachedItems
-                return@launch
-            } else if (snapshot.exists()) {
-                // 캐시는 있으나 빈 리스트라면, 강제 재요청
-                Log.w("loadRecentMatches", "⚠ 캐시된 리스트가 비어있음 → API 재호출")
+                val cached = try {
+                    snapshot.toObject(MatchHistoryCache::class.java)
+                } catch (e: Exception) {
+                    Log.e("loadRecentMatches", "❌ toObject 캐스팅 실패: ${e.message}", e)
+                    null
+                }
+
+                Log.d("loadRecentMatches", "📦 toObject 결과: $cached")
+
+                if (cached != null) {
+                    if (cached.isEmpty) {
+                        Log.d("loadRecentMatches", "🚫 이전에 빈 결과 캐시됨 → API 재호출 생략")
+                        _matchHistoryList.value = emptyList()
+                        return@launch
+                    } else if (cached.matches.isNotEmpty()) {
+                        Log.d("loadRecentMatches", "✅ 캐시 사용됨. match 개수: ${cached.matches.size}")
+                        _matchHistoryList.value = cached.matches
+                        return@launch
+                    }
+                } else {
+                    Log.w("loadRecentMatches", "⚠ 캐시가 null입니다.")
+                }
+            } catch (e: Exception) {
+                Log.e("loadRecentMatches", "❌ 캐시 조회 실패: ${e.message}")
+                // 계속 진행하여 API 호출
             }
 
-            // 2) API 호출
+            // ✅ 중복 요청 방지
+            if (savingFlags.contains(docId)) {
+                Log.d("loadRecentMatches", "⏳ 중복 저장 요청 차단됨 ($docId)")
+                return@launch
+            }
+
+            savingFlags.add(docId)
             try {
+                // 2) Riot API 호출
                 Log.d("loadRecentMatches", "🌐 Riot API 호출 시작 (queue=$queue)")
-                val aggregate = repository.getRecentMatchHistory(puuid, queue, start = 0, count = 10)
-                Log.d("loadRecentMatches", "✅ Riot API 응답 match 수: ${aggregate.matches.size}")
+                val aggregate = repository.getRecentMatchHistory(puuid, queue, start = 0, count = 5)
+                Log.d("loadRecentMatches", "✅ Riot API 응답 — match 수: ${aggregate.matches.size}")
 
                 _matchHistoryList.value = aggregate.matches
 
-                // 3) 캐시 저장 (비어 있지 않을 때만)
-                if (aggregate.matches.isNotEmpty()) {
-                    val cache = MatchHistoryCache(matches = aggregate.matches, updatedAt = System.currentTimeMillis())
-                    docRef.set(cache).await()
-                    Log.d("loadRecentMatches", "📦 Firestore에 전적 캐시 저장 완료")
-                } else {
-                    Log.w("loadRecentMatches", "⚠ API로부터 받은 match가 0개 → 캐시 저장 생략")
+                // 3) 빈 결과일 경우 저장 생략
+                if (aggregate.matches.isEmpty()) {
+                    Log.d("loadRecentMatches", "🚫 빈 결과라 캐시 저장 생략 ($docId)")
+                    return@launch
                 }
+
+                // 4) 캐시 저장
+                val cache = MatchHistoryCache(
+                    matches = aggregate.matches,
+                    updatedAt = System.currentTimeMillis(),
+                    isEmpty = false
+                )
+                Log.d("loadRecentMatches", "💾 캐시 저장 시도 — matches=${cache.matches.size}, isEmpty=${cache.isEmpty}")
+                docRef.set(cache).await()
+                Log.d("loadRecentMatches", "📦 Firestore에 전적 캐시 저장 완료 (docId=$docId)")
+
             } catch (e: Exception) {
                 Log.e("loadRecentMatches", "❌ Riot API 호출 실패: ${e.message}", e)
+            } finally {
+                savingFlags.remove(docId)  // 플래그 제거
             }
         }
     }
-
 
 
 
@@ -201,74 +259,73 @@ class SummonerViewModel : ViewModel() {
         viewModelScope.launch {
             Log.d("ChampionStats", "▶ loadChampionStatsAll() 시작 — puuid=$puuid, queue=$queue")
 
-            // 1) 현재 유저 UID 확인
             val uid = FirebaseAuth.getInstance().currentUser?.uid
             if (uid.isNullOrBlank()) {
                 Log.w("ChampionStats", "⛔ 현재 사용자 UID를 가져올 수 없습니다. 함수 종료.")
                 return@launch
             }
-            Log.d("ChampionStats", "✅ 현재 사용자 UID: $uid")
 
-            // 2) Firestore 문서 참조 설정
             val docId = if (queue == null) "${puuid}_all" else "${puuid}_queue$queue"
             val docRef = FirebaseFirestore.getInstance()
                 .collection("summoners")
                 .document(uid)
                 .collection("champion_stats")
                 .document(docId)
-            Log.d("ChampionStats", "📄 Firestore 문서 참조: summoners/$uid/champion_stats/$docId")
 
             try {
-                // 3) Firestore 캐시 조회
                 val snapshot = docRef.get().await()
                 Log.d("ChampionStats", "📄 snapshot.exists() = ${snapshot.exists()}")
 
-                if (snapshot.exists()) {
-                    val cached = snapshot.toObject(ChampionStatsCache::class.java)
-                    Log.d("ChampionStats", "📦 toObject(ChampionStatsCache) -> $cached")
-
-                    if (cached != null && !cached.stats.isNullOrEmpty()) {
-                        val stats = cached.stats!!  // nullable 아님 확신 후 안전하게 꺼내기
-                        Log.d("ChampionStats", "✅ 캐시된 stats 사용 (size=${stats.size}) — 상위 3개 추출")
-                        val top3 = stats.sortedByDescending { it.games }.take(3)
-                        displayedChampionStats.clear()
-                        displayedChampionStats.addAll(top3)
-                        _championStats.value = displayedChampionStats.toList()
-                        return@launch
-                    } else {
-                        Log.w("ChampionStats", "⚠ 캐시된 stats가 null이거나 비어있습니다.")
-                    }
+                val cached = try {
+                    snapshot.toObject(ChampionStatsCache::class.java)
+                } catch (e: Exception) {
+                    Log.e("ChampionStats", "❌ toObject 변환 실패 → 문서 삭제 후 새로고침: ${e.message}", e)
+                    // 🔥 잘못된 캐시 문서 삭제
+                    docRef.delete().await()
+                    null
                 }
 
-                // 4) API 호출 (캐시가 없거나 비어있을 때만)
-                Log.d("ChampionStats", "🌐 캐시가 없으므로 Riot API 호출 시작")
+                if (cached != null && !cached.stats.isNullOrEmpty()) {
+                    val stats = cached.stats!!
+                    Log.d("ChampionStats", "✅ 캐시된 stats 사용 (size=${stats.size})")
+                    val top3 = stats.sortedByDescending { it.games }.take(3)
+                    displayedChampionStats.clear()
+                    displayedChampionStats.addAll(top3)
+                    _championStats.value = displayedChampionStats.toList()
+                    return@launch
+                } else {
+                    Log.w("ChampionStats", "⚠ 캐시가 비어있거나 잘못된 구조입니다. → API 재요청")
+                }
+            } catch (e: Exception) {
+                Log.e("ChampionStats", "❌ 캐시 조회 실패: ${e.message}", e)
+            }
+
+            // 🔄 API 호출
+            try {
                 val stats = repository.getChampionStatsAllAtOnce(puuid, queue)
-                Log.d("ChampionStats", "🌐 API 응답 — total stats size=${stats.size}")
+                Log.d("ChampionStats", "🌐 API 응답 수신: ${stats.size}개")
 
                 if (stats.isEmpty()) {
-                    Log.w("ChampionStats", "⚠ API 응답이 비어 있음 — 캐시 저장 생략")
+                    Log.w("ChampionStats", "⚠ 응답이 비어 있음 → 캐시 저장 생략")
                     return@launch
                 }
 
                 val top3 = stats.sortedByDescending { it.games }.take(3)
-                Log.d("ChampionStats", "🌐 상위 3개 추출 — ${top3.map { it.championName to it.games }}")
-
                 displayedChampionStats.clear()
                 displayedChampionStats.addAll(top3)
                 _championStats.value = displayedChampionStats.toList()
 
-                // 5) 캐시 저장 (비어있지 않을 때만)
                 val cache = ChampionStatsCache(stats = stats, updatedAt = System.currentTimeMillis())
-                Log.d("ChampionStats", "🔄 Firestore에 캐시 저장 시작")
                 docRef.set(cache)
-                    .addOnSuccessListener { Log.d("ChampionStats", "✅ Firestore 캐시 저장 성공") }
-                    .addOnFailureListener { ex -> Log.e("ChampionStats", "❌ Firestore 캐시 저장 실패: ${ex.message}", ex) }
+                    .addOnSuccessListener { Log.d("ChampionStats", "✅ 캐시 저장 성공") }
+                    .addOnFailureListener { e -> Log.e("ChampionStats", "❌ 캐시 저장 실패: ${e.message}", e) }
 
             } catch (e: Exception) {
-                Log.e("ChampionStats", "❌ loadChampionStatsAll() 도중 예외 발생: ${e.message}", e)
+                Log.e("ChampionStats", "❌ API 호출 중 예외: ${e.message}", e)
             }
         }
     }
+
 
 
 
@@ -373,9 +430,6 @@ class SummonerViewModel : ViewModel() {
             null
         }
     }
-
-
-
 
     fun searchSummoner(gameName: String, tagLine: String, uid: String) {
         viewModelScope.launch {

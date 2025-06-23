@@ -116,7 +116,7 @@ class NameSearchActivity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 // 호출 스로틀링
-                delay(200L)
+                delay(1200L)
 
                 // 1차 Riot ID 기반 검색
                 var summoner = try {
@@ -130,7 +130,7 @@ class NameSearchActivity : AppCompatActivity() {
 
                 // 2차 fallback 검색 (이후 호출에도 딜레이)
                 if (summoner == null && tagLine != "KR1" && tagLine != "KR2") {
-                    delay(200L)
+                    delay(1200L)
                     summoner = try {
                         viewModel.searchSummonerByName(gameName, uid)
                         withTimeout(2500L) {

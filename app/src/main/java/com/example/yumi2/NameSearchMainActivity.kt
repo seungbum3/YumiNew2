@@ -63,8 +63,15 @@ class NameSearchMainActivity : AppCompatActivity() {
 
         val gameName = intent.getStringExtra("gameName") ?: ""
         val tagLine = intent.getStringExtra("tagLine") ?: ""
+
         val fullSummonerName = "$gameName#$tagLine"
         matchHistoryAdapter = MatchHistoryAdapter(emptyList(), fullSummonerName)
+
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        if (gameName.isNotBlank() && tagLine.isNotBlank()) {
+            viewModel.searchSummoner(gameName, tagLine, currentUid)
+        }
+
 
         val recyclerMatchHistory = findViewById<RecyclerView>(R.id.recyclerMatchHistory)
         recyclerMatchHistory.layoutManager = LinearLayoutManager(this)

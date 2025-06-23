@@ -1,5 +1,6 @@
 package com.example.yumi2.adapter
 
+import android.content.Intent
 import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.yumi2.NameSearchMainActivity
 import com.example.yumi2.R
 import com.example.yumi2.model.MatchHistoryItem
 import com.example.yumi2.model.Player
@@ -87,6 +89,7 @@ class MatchHistoryAdapter(
         val ivSummonerSpell1: ImageView = itemView.findViewById(R.id.ivSummonerSpell1)
         val ivSummonerSpell2: ImageView = itemView.findViewById(R.id.ivSummonerSpell2)
         val downBtn: ImageView = itemView.findViewById(R.id.downBtn)
+        val itemContainer: LinearLayout = itemView.findViewById(R.id.itemContainer)
         val expandedLayout: LinearLayout = itemView.findViewById(R.id.expandedLayout)
         val redTeamContainer: LinearLayout = itemView.findViewById(R.id.redTeamContainer)
         val blueTeamContainer: LinearLayout = itemView.findViewById(R.id.blueTeamContainer)
@@ -114,7 +117,7 @@ class MatchHistoryAdapter(
         val match = items[position]
 
         // ① championId(숫자) → engKey → 예외 매핑 → fallback
-        val engKey = idToKeyMap[ match.championId.toString() ]
+        val engKey = idToKeyMap[match.championId.toString()]
             ?: championEngNameOverride[match.championEngName]
             ?: match.championEngName
 
@@ -149,13 +152,11 @@ class MatchHistoryAdapter(
             Log.d("KDA_DEBUG", "kdaString: ${match.kdaString}, parsed deaths: $deaths")
         }
 
-
         holder.tvMatchResult.text = if (match.isWin) "승리" else "패배"
-            holder.tvMatchResult.setTextColor(if (match.isWin) Color.BLUE else Color.RED)
-            holder.matchItemRoot.setBackgroundColor(
-                if (match.isWin) Color.parseColor("#C8E8F4") else Color.parseColor("#F4C8C8")
-            )
-
+        holder.tvMatchResult.setTextColor(if (match.isWin) Color.BLUE else Color.RED)
+        holder.matchItemRoot.setBackgroundColor(
+            if (match.isWin) Color.parseColor("#C8E8F4") else Color.parseColor("#F4C8C8")
+        )
 
         // 소환사 주문 이미지
         summonerSpellMap[match.summonerSpell1]?.let {
@@ -197,7 +198,7 @@ class MatchHistoryAdapter(
         }
 
         // 펼침 레이아웃 토글
-        holder.downBtn.setOnClickListener {
+        holder.itemContainer.setOnClickListener {
             holder.expandedLayout.visibility =
                 if (holder.expandedLayout.visibility == View.GONE) View.VISIBLE else View.GONE
         }
@@ -245,34 +246,39 @@ class MatchHistoryAdapter(
         for (p in players) {
             Log.d("DebugPlayer", "name=${p.summonerName}, champ=${p.championEngName}")
             val view = inflater.inflate(R.layout.player_item, container, false)
-          //  val rootLayout = view.findViewById<LinearLayout>(R.id.playerItemRoot)
 
-            // ① backgroundView 찾기
             val backgroundView = view.findViewById<View>(R.id.backgroundView)
             val bgColor = if (p.isWin)
                 Color.parseColor("#C8E8F4")
             else
                 Color.parseColor("#F4C8C8")
             backgroundView.setBackgroundColor(bgColor)
-           // rootLayout.setBackgroundColor(backgroundColor)
 
-            // ① championId → engKey → 예외 매핑 → fallback
             val engKey = idToKeyMap[p.championId.toString()]
                 ?: championEngNameOverride[p.championEngName]
                 ?: p.championEngName
 
-            // ② 최종 URL 생성
-            val iconUrl = "https://ddragon.leagueoflegends.com/cdn/" +
-                    "$latestVersion/img/champion/$engKey.png"
+            val iconUrl = "https://ddragon.leagueoflegends.com/cdn/$latestVersion/img/champion/$engKey.png"
 
-            // ③ Glide 로드
             Glide.with(view.context)
                 .load(iconUrl)
                 .error(R.drawable.error_image)
                 .into(view.findViewById<ImageView>(R.id.ivChampionIcon))
 
             val nameView = view.findViewById<TextView>(R.id.tvSummonerName)
-            nameView.text = if (p.summonerName.isBlank()) "Unknown" else p.summonerName
+            val fullName = if (p.gameName.isNotBlank() && p.tagLine.isNotBlank())
+                "${p.gameName}#${p.tagLine}" else p.summonerName
+            nameView.text = if (fullName.isBlank()) "Unknown" else fullName
+
+            // ✅ 클릭 시 해당 소환사 상세로 이동
+            nameView.setOnClickListener {
+                val context = it.context
+                val intent = Intent(context, NameSearchMainActivity::class.java).apply {
+                    putExtra("gameName", p.gameName)
+                    putExtra("tagLine", p.tagLine)
+                }
+                context.startActivity(intent)
+            }
 
             view.findViewById<TextView>(R.id.tvKda).text = "KDA ${p.kills}/${p.deaths}/${p.assists}"
             view.findViewById<TextView>(R.id.tvCs).text = "CS ${p.cs} (${String.format("%.1f", p.csPerMin)})"
@@ -312,6 +318,7 @@ class MatchHistoryAdapter(
             container.addView(view)
         }
     }
+
 
     override fun getItemCount(): Int = items.size
 

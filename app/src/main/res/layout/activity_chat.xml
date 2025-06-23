@@ -7,15 +7,15 @@
     <!-- 뒤로 가기 버튼 -->
     <ImageButton
         android:id="@+id/backButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:background="@null"
         android:clickable="true"
         android:focusable="true"
         android:src="@drawable/ic_back"
         android:contentDescription="뒤로 가기"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="30dp"
         android:layout_marginStart="16dp" />
 
     <!-- 채팅방 제목 (화면 중앙 배치) -->
@@ -25,10 +25,10 @@
         android:layout_height="wrap_content"
         android:text="채팅"
         android:textColor="@color/black"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textStyle="bold"
         android:layout_centerInParent="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
         android:layout_alignParentTop="true"/>
 
     <!-- 채팅 리스트 컨테이너 -->
@@ -46,6 +46,8 @@
             android:id="@+id/chatRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="#E7EBED"
+            android:layout_marginTop="30dp"
             android:overScrollMode="never" />
     </LinearLayout>
 
@@ -53,7 +55,7 @@
     <LinearLayout
         android:id="@+id/messageContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="70dp"
         android:background="#FFFFFF"
         android:elevation="4dp"
         android:orientation="horizontal"
@@ -71,6 +73,7 @@
             android:hint="메시지를 입력하세요"
             android:inputType="textMultiLine"
             android:maxHeight="150dp"
+            android:textSize="16sp"
             android:maxLines="5"
             android:minHeight="50dp"
             android:overScrollMode="never"
@@ -93,6 +96,7 @@
                 android:minWidth="70dp"
                 android:padding="12dp"
                 android:text="보내기"
+                android:textSize="12sp"
                 android:textColor="@android:color/white"
                 android:textStyle="bold" />
         </FrameLayout>

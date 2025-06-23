@@ -62,7 +62,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="SummonerName"
-                android:textSize="10sp"
+                android:textSize="8sp"
+                android:textStyle="bold"
                 android:clickable="true"
                 android:focusable="true"
                 android:textColor="@android:color/black" />
@@ -72,85 +73,101 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="KDA 0/0/0"
-                android:textSize="7sp"
+                android:textStyle="bold"
+                android:textSize="6.5sp"
                 android:textColor="@android:color/black" />
         </LinearLayout>
 
-        <!-- 아이템 6개 -->
+        <!-- 전체를 감싸는 수직 레이아웃 -->
         <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end"
+            android:layout_marginEnd="12dp"
             android:layout_marginStart="10dp">
 
-            <ImageView
-                android:id="@+id/ivItem0"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginEnd="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/item_error" />
-
-            <ImageView
-                android:id="@+id/ivItem1"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginEnd="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/item_error" />
-
-            <ImageView
-                android:id="@+id/ivItem2"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginEnd="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/item_error" />
-
-            <ImageView
-                android:id="@+id/ivItem3"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginEnd="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/item_error" />
-
-            <ImageView
-                android:id="@+id/ivItem4"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginEnd="2dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/item_error" />
-
-            <ImageView
-                android:id="@+id/ivItem5"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/item_error" />
-        </LinearLayout>
-
-        <!-- CS / 골드 -->
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_marginStart="8dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:id="@+id/tvCs"
+            <!-- 아이템 6개 가로 정렬 -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CS 0 (0.0)"
-                android:textSize="7sp" />
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tvGold"
+                <ImageView
+                    android:id="@+id/ivItem0"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="2dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/item_error" />
+
+                <ImageView
+                    android:id="@+id/ivItem1"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="2dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/item_error" />
+
+                <ImageView
+                    android:id="@+id/ivItem2"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="2dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/item_error" />
+
+                <ImageView
+                    android:id="@+id/ivItem3"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="2dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/item_error" />
+
+                <ImageView
+                    android:id="@+id/ivItem4"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="2dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/item_error" />
+
+                <ImageView
+                    android:id="@+id/ivItem5"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/item_error" />
+            </LinearLayout>
+
+            <!-- 아래쪽 CS / 골드 세로 정렬 -->
+            <LinearLayout
+                android:orientation="horizontal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="골드 0"
-                android:textSize="7sp" />
+                android:layout_marginTop="4dp"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/tvCs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:minWidth="40dp"
+                     android:gravity="end"
+                    android:text="CS 184 (7.5)"
+                    android:textStyle="bold"
+                    android:textSize="6sp" />
+
+                <TextView
+                    android:id="@+id/tvGold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="골드 10,410"
+                    android:textStyle="bold"
+                    android:textSize="6sp" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

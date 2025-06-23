@@ -1,9 +1,12 @@
 package com.example.yumi2.repository
 
+import retrofit2.HttpException
 import android.util.Log
 import com.example.yumi2.api.RiotApiService
+import com.example.yumi2.model.AccountResponse
 import com.example.yumi2.model.ChampionStats
 import com.example.yumi2.model.LeagueEntry
+import com.example.yumi2.model.MatchDetail
 import com.example.yumi2.model.MatchHistoryItem
 import com.example.yumi2.model.RecentMatchesAggregate
 import com.example.yumi2.model.Summoner
@@ -17,10 +20,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.example.yumi2.model.Player
 import com.example.yumi2.model.RankInfo
+import com.example.yumi2.model.toResponse
 import kotlinx.coroutines.delay
 
 class SummonerRepository {
-    private val apiKey = "RGAPI-ee77d94c-6e35-459c-9818-efc8cc17bdd3"
+    private val apiKey = "RGAPI-0b181b1b-c02a-42b0-a58f-707fb197fcfd"
 
     private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
 
@@ -53,6 +57,30 @@ class SummonerRepository {
      * @param start: 불러올 경기의 시작 인덱스
      * @param count: 불러올 경기 수
      */
+
+
+
+    // 🔁 429 처리용 retry 함수 추가 (클래스 최상단에 위치)
+    suspend fun fetchMatchWithRetry(matchId: String, maxRetries: Int = 3): MatchDetail? {
+        repeat(maxRetries) { attempt ->
+            try {
+                delay(1000L) // 기본 딜레이
+                return riotMatchApi.getMatchDetail(matchId, apiKey)
+            } catch (e: Exception) {
+                if (e is HttpException && e.code() == 429) {
+                    val delayTime = (attempt + 1) * 1000L
+                    Log.w("MatchRetry", "🔁 429 에러 - ${delayTime}ms 후 재시도 (attempt ${attempt + 1})")
+                    delay(delayTime)
+                } else {
+                    Log.e("MatchRetry", "❌ fetchMatch 실패 - ${e.message}")
+                    return null
+                }
+            }
+        }
+        Log.e("MatchRetry", "❌ 모든 재시도 실패 - matchId=$matchId")
+        return null
+    }
+
     suspend fun getChampionStats(
         puuid: String,
         queue: Int? = 420,
@@ -69,7 +97,7 @@ class SummonerRepository {
             val matchIds = riotMatchApi.getMatchIdsByPuuid(
                 puuid = puuid,
                 start = 0,
-                count = 10,
+                count = 50,
                 queue = null,
                 apiKey = apiKey
             )
@@ -82,64 +110,57 @@ class SummonerRepository {
 
             // 각 경기 상세 정보를 조회
             for (matchId in matchIds) {
-                try {
-                    delay(150L)
+                val matchDetail = fetchMatchWithRetry(matchId) ?: continue
+                Log.d("SummonerRepository", "matchId: $matchId, matchDetail fetched")
 
-                    val matchDetail = riotMatchApi.getMatchDetail(matchId, apiKey)
-                    Log.d("SummonerRepository", "matchId: $matchId, matchDetail fetched")
+                // 현재 시즌 필터링: gameCreation 기준
+                val gameCreation = matchDetail.info.gameCreation
+                if (gameCreation < CURRENT_SEASON_START) {
+                    Log.d("SummonerRepository", "matchId: $matchId => 이전 시즌 경기, 스킵")
+                    continue
+                }
 
-                    // 현재 시즌 필터링: gameCreation 기준
-                    val gameCreation = matchDetail.info.gameCreation
-                    if (gameCreation < CURRENT_SEASON_START) {
-                        Log.d("SummonerRepository", "matchId: $matchId => 이전 시즌 경기, 스킵")
-                        continue
-                    }
-
-                    // queue가 null인 경우, 솔로(420) 또는 자유(440) 경기만 누적
-                    if (queue == null) {
-                        val qid = matchDetail.info.queueId
-                        if (qid != 420 && qid != 440) {
-                            Log.d(
-                                "SummonerRepository",
-                                "matchId: $matchId has queueId $qid, not solo/flex. Skipping."
-                            )
-                            continue
-                        }
-                    }
-                    // PUUID에 해당하는 participant 정보 찾기
-                    val participant = matchDetail.info.participants.find { it.puuid == puuid }
-                    if (participant == null) {
-                        Log.e(
+                // queue가 null인 경우, 솔로(420) 또는 자유(440) 경기만 누적
+                if (queue == null) {
+                    val qid = matchDetail.info.queueId
+                    if (qid != 420 && qid != 440) {
+                        Log.d(
                             "SummonerRepository",
-                            "matchId: $matchId - 참가자 정보 없음 for puuid: $puuid"
+                            "matchId: $matchId has queueId $qid, not solo/flex. Skipping."
                         )
                         continue
                     }
+                }
 
-                    // 누적: 킬, 데스, 어시, CS, 골드, 승/패
-                    val champId = participant.championId
-                    val kills = participant.kills
-                    val deaths = participant.deaths
-                    val assists = participant.assists
-                    val totalCS = participant.totalMinionsKilled + participant.neutralMinionsKilled
-                    val gold = participant.goldEarned
-                    val isWin = participant.win
-
-                    val accumulator = championStatsMap.getOrPut(champId) {
-                        ChampionStatsAccumulator(championId = champId)
-                    }
-                    accumulator.games++
-                    if (isWin) accumulator.wins++
-                    accumulator.kills += kills
-                    accumulator.deaths += deaths
-                    accumulator.assists += assists
-                    accumulator.cs += totalCS
-                    accumulator.gold += gold
-
-                } catch (e: Exception) {
-                    Log.e("SummonerRepository", "오류 발생 - matchId: $matchId, error: ${e.toString()}")
+                // PUUID에 해당하는 participant 정보 찾기
+                val participant = matchDetail.info.participants.find { it.puuid == puuid }
+                if (participant == null) {
+                    Log.e(
+                        "SummonerRepository",
+                        "matchId: $matchId - 참가자 정보 없음 for puuid: $puuid"
+                    )
                     continue
                 }
+
+                // 누적: 킬, 데스, 어시, CS, 골드, 승/패
+                val champId = participant.championId
+                val kills = participant.kills
+                val deaths = participant.deaths
+                val assists = participant.assists
+                val totalCS = participant.totalMinionsKilled + participant.neutralMinionsKilled
+                val gold = participant.goldEarned
+                val isWin = participant.win
+
+                val accumulator = championStatsMap.getOrPut(champId) {
+                    ChampionStatsAccumulator(championId = champId)
+                }
+                accumulator.games++
+                if (isWin) accumulator.wins++
+                accumulator.kills += kills
+                accumulator.deaths += deaths
+                accumulator.assists += assists
+                accumulator.cs += totalCS
+                accumulator.gold += gold
             }
 
             // 누적 데이터를 ChampionStats 리스트로 변환
@@ -179,37 +200,55 @@ class SummonerRepository {
             val matchIds = riotMatchApi.getMatchIdsByPuuid(
                 puuid = puuid,
                 start = 0,
-                count = 10, // 최근 15게임
+                count = 5,
                 queue = queue,
                 apiKey = apiKey
             )
 
-            val champCountMap = mutableMapOf<Int, Int>()
+            val statsMap = mutableMapOf<Int, ChampionStatsAccumulator>()
+            val mapping = ChampionMappingUtil.fetchLatestChampionMapping()
+
             for (matchId in matchIds) {
                 try {
-                    delay(300L)
+                    delay(1200L)
                     val matchDetail = riotMatchApi.getMatchDetail(matchId, apiKey)
                     val participant = matchDetail.info.participants.find { it.puuid == puuid } ?: continue
                     val champId = participant.championId
-                    champCountMap[champId] = champCountMap.getOrDefault(champId, 0) + 1
+
+                    val acc = statsMap.getOrPut(champId) { ChampionStatsAccumulator(champId) }
+                    acc.games++
+                    if (participant.win) acc.wins++
+                    acc.kills += participant.kills
+                    acc.deaths += participant.deaths
+                    acc.assists += participant.assists
+                    acc.cs += (participant.totalMinionsKilled + participant.neutralMinionsKilled)
+                    acc.gold += participant.goldEarned
+
                 } catch (_: Exception) {
                     continue
                 }
             }
 
-            val top3 = champCountMap.entries.sortedByDescending { it.value }.take(3)
-            val mapping = ChampionMappingUtil.fetchLatestChampionMapping()
-            return@withContext top3.map {
-                val info = mapping[it.key]
-                ChampionStats(
-                    championId = it.key,
-                    championName = info?.korName ?: "알 수 없음",
-                    championEngId = info?.engId ?: "Unknown",
-                    games = it.value
-                )
-            }
+            return@withContext statsMap.values.sortedByDescending { it.games }
+                .take(3)
+                .map { acc ->
+                    val info = mapping[acc.championId]
+                    ChampionStats(
+                        championId = acc.championId,
+                        championName = info?.korName ?: "알 수 없음",
+                        championEngId = info?.engId ?: "Unknown",
+                        games = acc.games,
+                        wins = acc.wins,
+                        kills = acc.kills,
+                        deaths = acc.deaths,
+                        assists = acc.assists,
+                        cs = acc.cs,
+                        gold = acc.gold
+                    )
+                }
         }
     }
+
 
 
     /**
@@ -228,7 +267,7 @@ class SummonerRepository {
         try {
             val allMatchIds = mutableListOf<String>()
             var start = 0
-            val pageCount = 100
+            val pageCount = 20
 
             outer@ while (true) {
                 val pageMatchIds = riotMatchApi.getMatchIdsByPuuid(
@@ -474,7 +513,7 @@ class SummonerRepository {
         puuid: String,
         queue: Int? = null,   // 420(솔로), 440(자유), null(전체)
         start: Int = 0,
-        count: Int = 10
+        count: Int = 5
     ): RecentMatchesAggregate = withContext(Dispatchers.IO) {
 
         Log.d(
@@ -543,6 +582,8 @@ class SummonerRepository {
                 val championEngName = champInfo?.engId ?: "Unknown"
                 val championKorName = champInfo?.korName ?: "알수없음"
 
+                val accountInfo = riotAccountApi.getAccountByPuuid(participant.puuid, apiKey)
+
                 val kills = participant.kills
                 val deaths = participant.deaths
                 val assists = participant.assists
@@ -563,15 +604,23 @@ class SummonerRepository {
                     participant.item6
                 )
 
+                val accountCache = mutableMapOf<String, AccountResponse>() // puuid -> account
+
                 val redTeamPlayers = info.participants
                     .filter { it.teamId == 200 }
                     .map { p ->
+                        val accountInfo = accountCache.getOrPut(p.puuid) {
+                            riotAccountApi.getAccountByPuuid(p.puuid, apiKey).toResponse()
+                        }
+
                         val redCsPerMin = if (gameDuration > 0) {
                             (p.totalMinionsKilled + p.neutralMinionsKilled) / (gameDuration / 60.0)
                         } else 0.0
 
                         Player(
-                            summonerName = p.summonerName,
+                            gameName = accountInfo.gameName,
+                            tagLine = accountInfo.tagLine,
+                            summonerName = "${accountInfo.gameName}#${accountInfo.tagLine}",
                             championId = p.championId,
                             championEngName = championMapping[p.championId]?.engId ?: "Unknown",
                             kills = p.kills,
@@ -591,12 +640,18 @@ class SummonerRepository {
                 val blueTeamPlayers = info.participants
                     .filter { it.teamId == 100 }
                     .map { p ->
+                        val accountInfo = accountCache.getOrPut(p.puuid) {
+                            riotAccountApi.getAccountByPuuid(p.puuid, apiKey).toResponse()
+                        }
+
                         val blueCsPerMin = if (gameDuration > 0) {
                             (p.totalMinionsKilled + p.neutralMinionsKilled) / (gameDuration / 60.0)
                         } else 0.0
 
                         Player(
-                            summonerName = p.summonerName,
+                            gameName = accountInfo.gameName,
+                            tagLine = accountInfo.tagLine,
+                            summonerName = "${accountInfo.gameName}#${accountInfo.tagLine}",
                             championId = p.championId,
                             championEngName = championMapping[p.championId]?.engId ?: "Unknown",
                             kills = p.kills,
@@ -612,6 +667,7 @@ class SummonerRepository {
                             isWin = p.win
                         )
                     }
+
 
                 matchList.add(
                     MatchHistoryItem(

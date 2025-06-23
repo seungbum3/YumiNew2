@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/friendProfileImage"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:scaleType="centerCrop"
         android:src="@drawable/error_image" />
 
@@ -23,13 +23,13 @@
         android:gravity="center_vertical"
         android:text="닉네임"
         android:textColor="#E7EBED"
-        android:textSize="16sp" />
+        android:textSize="14sp" />
     <!-- 오른쪽 화살표 아이콘 -->
     <ImageView
         android:id="@+id/ivArrow"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:layout_marginStart="8dp"
+        android:layout_marginEnd="20dp"
         android:src="@drawable/ic_arrow_right"
         android:contentDescription="친구 요청 옵션" />
 
@@ -38,6 +38,8 @@
         android:id="@+id/optionsButton"
         android:layout_width="24dp"
         android:layout_height="24dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginTop="8dp"
         android:contentDescription="옵션 메뉴"
         android:src="@drawable/ic_more_vert" />
 </LinearLayout>

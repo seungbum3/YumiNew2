@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -16,8 +15,8 @@ import com.example.yumi2.model.Item
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-
 data class SavedConfig(val name: String, val slots: List<String?>)
+
 class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSelectionListener {
 
     private lateinit var championSelector: FrameLayout
@@ -32,7 +31,6 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
     private val db = FirebaseFirestore.getInstance()
     private var currentChampionId: String? = null
     private var currentLevel: Int = 1
-    // 즐겨찾기에서 불러온 아이템 (최대 6개, 읽기 전용)
     private var favoriteItems: MutableList<Item?> = MutableList(6) { null }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,19 +49,17 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             loadSavedConfiguration(receivedIds)
         }
 
-        championSelector = findViewById(R.id.championSelector)
-        championNameText = findViewById(R.id.championName)
-        levelText = findViewById(R.id.levelText)
-        btnLevelMinus = findViewById(R.id.btnLevelMinus)
-        btnLevelPlus = findViewById(R.id.btnLevelPlus)
-        statsTable = findViewById(R.id.statsTable)
+        championSelector     = findViewById(R.id.championSelector)
+        championNameText     = findViewById(R.id.championName)
+        levelText            = findViewById(R.id.levelText)
+        btnLevelMinus        = findViewById(R.id.btnLevelMinus)
+        btnLevelPlus         = findViewById(R.id.btnLevelPlus)
+        statsTable           = findViewById(R.id.statsTable)
         btnLoadFavoriteItems = findViewById(R.id.btnLoadItems)
-        itemSlotContainer = findViewById(R.id.itemSlotContainer)
+        itemSlotContainer    = findViewById(R.id.itemSlotContainer)
 
         currentLevel = 1
         levelText.text = "레벨: $currentLevel"
-
-        // 미리 6개의 빈 슬롯 생성
         createBlankItemSlots()
 
         championSelector.setOnClickListener {
@@ -88,20 +84,18 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             }
         }
 
-        btnLoadFavoriteItems.text = "불러오기"
+        btnLoadFavoriteItems.text = "아이템 불러오기"
         btnLoadFavoriteItems.setOnClickListener {
             showLoadConfigurationsDialog()
         }
-        val btnResetItems = findViewById<Button>(R.id.btnResetItems).apply {
-            text = "초기화"  // XML에 이미 적어두셨다면 생략해도 됩니다.
+
+        findViewById<Button>(R.id.btnResetItems).apply {
+            text = "전체 초기화"
             setOnClickListener {
-                // 6칸 모두 null 로 채우고
-                for (i in favoriteItems.indices) {
-                    favoriteItems[i] = null
-                }
-                // 슬롯 UI 갱신
+                favoriteItems.replaceAll { null }
                 updateItemSlotsUI()
-                // (선택사항) 아이템 효과가 빠진 상태로 스탯도 다시 계산하고 싶다면:
+                currentLevel = 1
+                levelText.text = "레벨: $currentLevel"
                 currentChampionId?.let { loadChampionData(it, currentLevel) }
             }
         }
@@ -113,24 +107,29 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             val iv = ImageView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
-                )
+                ).apply {
+                    val m = TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 4f, resources.displayMetrics
+                    ).toInt()
+                    setMargins(m, 0, m, 0)
+                }
                 adjustViewBounds = true
                 scaleType = ImageView.ScaleType.FIT_CENTER
-                setImageResource(R.drawable.placeholder_image)
+                setImageResource(R.drawable.ic_placeslot)
             }
             itemSlotContainer.addView(iv)
         }
     }
 
     private fun loadChampionData(championId: String, level: Int) {
+        // 1) champions 컬렉션에서 기본 스탯 로드
         db.collection("champions").document(championId).get()
             .addOnSuccessListener { doc ->
                 val data = doc.data ?: run {
                     Toast.makeText(this, "챔피언 데이터를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
                     return@addOnSuccessListener
                 }
-
-                // ──────────────── attack_speed_table 읽어서 캐시에 저장
+                // 공격속도 테이블 캐싱
                 (data["attack_speed_table"] as? Map<*, *>)?.let { raw ->
                     val map = raw.entries.associate { (k, v) ->
                         k.toString() to ((v as? Number)?.toDouble() ?: 0.0)
@@ -141,30 +140,52 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
                 currentChampionId = championId
                 championNameText.text = data["name"] as? String ?: ""
 
-                (data["portrait_url"] as? String)?.takeIf { it.isNotEmpty() }?.let { url ->
-                    // 챔피언 이미지 표시
-                    (championSelector.findViewById<TextView>(R.id.championSelectorText))
-                        ?.visibility = View.GONE
-                    var iv = championSelector.findViewById<ImageView>(R.id.championImage)
-                    if (iv == null) {
-                        iv = ImageView(this).apply {
-                            id = R.id.championImage
-                            layoutParams = FrameLayout.LayoutParams(
-                                FrameLayout.LayoutParams.MATCH_PARENT,
-                                FrameLayout.LayoutParams.MATCH_PARENT
-                            )
-                            scaleType = ImageView.ScaleType.CENTER_CROP
-                        }
-                        championSelector.addView(iv)
-                    }
-                    Glide.with(this).load(url).into(iv)
-                }
+                // 2) champion_choice 컬렉션에서 iconUrl 필드 가져오기
+                db.collection("champion_choice")
+                    .whereEqualTo("name", data["name"] as? String ?: "")
+                    .get()
+                    .addOnSuccessListener { snap ->
+                        val iconUrl = snap.documents
+                            .firstOrNull()
+                            ?.getString("iconUrl")   // <-- 대소문자 일치
+                            ?: ""
+                        if (iconUrl.isNotBlank()) {
+                            championSelector
+                                .findViewById<TextView>(R.id.championSelectorText)
+                                ?.visibility = View.GONE
 
-                val baseStats = data["base_stats"] as? Map<String, Number>
+                            var iv = championSelector
+                                .findViewById<ImageView>(R.id.championImage)
+                            if (iv == null) {
+                                val sizePx = TypedValue.applyDimension(
+                                    TypedValue.COMPLEX_UNIT_DIP,
+                                    120f,
+                                    resources.displayMetrics
+                                ).toInt()
+                                iv = ImageView(this).apply {
+                                    id = R.id.championImage
+                                    layoutParams = FrameLayout.LayoutParams(sizePx, sizePx)
+                                    scaleType = ImageView.ScaleType.FIT_XY
+                                    adjustViewBounds = false
+                                }
+                                championSelector.addView(iv)
+                            }
+
+                            Glide.with(this)
+                                .load(iconUrl)
+                                .transform(TopCropTransformation())
+                                .into(iv)
+                        }
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "아이콘 불러오기 실패", Toast.LENGTH_SHORT).show()
+                    }
+
+                // 3) 스탯 업데이트
+                val baseStats   = data["base_stats"] as? Map<String, Number>
                 val growthStats = data["growth_stats"] as? Map<String, Number>
-                val extraStats = data["item_stats"] as? Map<String, Number>
-                // level 18 기준 Raw AS (items 제외)
-                val finalAS = (data["final_attack_speed"] as? Number)?.toDouble()
+                val extraStats  = data["item_stats"] as? Map<String, Number>
+                val finalAS     = (data["final_attack_speed"] as? Number)?.toDouble()
                 updateStats(level, baseStats, growthStats, extraStats, finalAS)
             }
             .addOnFailureListener { e ->
@@ -214,11 +235,9 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
         extraStats: Map<String, Number>?,
         finalAttackSpeed: Number? = null
     ) {
-        // 1) 테이블 초기화
         statsTable.removeAllViews()
         if (baseStats == null || growthStats == null || currentChampionId == null) return
 
-        // 2) 아이템 보너스 합산 (% 기준)
         val itemBonus = mutableMapOf<String, Double>()
         favoriteItems.filterNotNull().forEach { item ->
             parseItemStats(item.stats).forEach { (k, v) ->
@@ -226,40 +245,19 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             }
         }
 
-        // 3) 스탯 레이블 ↔ 내부 키 매핑
         val filterMapping = listOf(
-            "체력" to "hp",
-            "마나" to "mp",
-            "공격력" to "attackdamage",
-            "주문력" to "abilitypower",
-            "방어력" to "armor",
-            "마법 저항력" to "spellblock",
-            "공격 속도" to "attackspeed",
-            "스킬 가속" to "cooldownreduction",
-            "치명타 확률" to "crit",
-            "이동 속도" to "movespeed",
-            "물리 관통력" to "attackpenetration",
-            "방어구 관통력" to "armorpenetration",
-            "마법 관통력" to "magicpenetration",
-            "기본 체력 재생" to "hpregen",
-            "기본 마나 재생" to "manaregen",
-            "생명력 흡수" to "lifesteal",
-            "체력 회복 및 보호막" to "has",
-            "공격 사거리" to "attackrange",
-            "강인함" to "tenacity"
+            "체력" to "hp", "마나" to "mp", "공격력" to "attackdamage", "주문력" to "abilitypower",
+            "방어력" to "armor", "마법 저항력" to "spellblock", "공격 속도" to "attackspeed",
+            "스킬 가속" to "cooldownreduction", "치명타 확률" to "crit", "이동 속도" to "movespeed",
+            "물리 관통력" to "attackpenetration", "방어구 관통력" to "armorpenetration", "마법 관통력" to "magicpenetration",
+            "기본 체력 재생" to "hpregen", "기본 마나 재생" to "manaregen", "생명력 흡수" to "lifesteal",
+            "체력 회복 및 보호막" to "has", "공격 사거리" to "attackrange", "강인함" to "tenacity"
         )
         val percentLabels = setOf(
-            "치명타 확률",
-            "기본 체력 재생",
-            "기본 마나 재생",
-            "체력 회복 및 보호막",
-            "생명력 흡수",
-            "강인함"
+            "치명타 확률", "기본 체력 재생", "기본 마나 재생", "체력 회복 및 보호막", "생명력 흡수", "강인함"
         )
 
-        // 4) 스탯 계산 & 테이블에 표시
         filterMapping.forEach { (label, key) ->
-            // 4-1) “총합(rawTotal)” (성장 + extraStats + 아이템)
             val rawTotal: Double = if (key == "attackspeed") {
                 val asAtLevel = FirebaseCache.attackSpeedData[currentChampionId]!![level.toString()]
                     ?: baseStats["attackspeed"]!!.toDouble()
@@ -274,7 +272,6 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
                         (itemBonus[key] ?: 0.0)
             }
 
-            // 4-2) 레벨1 기준 베이스값
             val baseAtLevel1: Double = if (key == "attackspeed") {
                 FirebaseCache.attackSpeedData[currentChampionId]!!["1"]
                     ?: baseStats["attackspeed"]!!.toDouble()
@@ -282,16 +279,12 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
                 baseStats[key]?.toDouble() ?: 0.0
             }
 
-            // 4-3) 레벨1 대비 증가량
             val delta = rawTotal - baseAtLevel1
-
-            // 4-4) 반올림 처리
             val dispTotal = if (key == "attackspeed")
                 kotlin.math.round(rawTotal * 1000) / 1000.0 else rawTotal
             val dispDelta = if (key == "attackspeed")
                 kotlin.math.round(delta * 1000) / 1000.0 else delta
 
-            // 4-5) 표시 문자열 구성: “현재(레벨+아이템) / (+레벨1 대비 증가량)”
             val displayText = when {
                 key == "attackspeed" ->
                     String.format("%.3f / (+%.3f)", dispTotal, dispDelta)
@@ -301,33 +294,22 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
                     String.format("%.0f / (+%.0f)", dispTotal, dispDelta)
             }
 
-            // 4-6) TableRow inflate & 바인딩
             val rowView = LayoutInflater.from(this)
                 .inflate(R.layout.champrow_stat, statsTable, false) as TableRow
             val iconView  = rowView.findViewById<ImageView>(R.id.statIcon)
             val nameView  = rowView.findViewById<TextView>(R.id.statName)
             val valueView = rowView.findViewById<TextView>(R.id.statValue)
 
-            // 아이콘 매핑
             val statIconMap = mapOf(
-                "체력" to R.drawable.lol_stat_hp,
-                "마나" to R.drawable.lol_stat_mana,
-                "공격력" to R.drawable.lol_stat_attack,
-                "주문력" to R.drawable.lol_stat_magic,
-                "방어력" to R.drawable.lol_stat_armor,
-                "마법 저항력" to R.drawable.lol_stat_magic_r,
-                "공격 속도" to R.drawable.lol_stat_attack_speed,
-                "이동 속도" to R.drawable.lol_filter_movement_speed,
-                "기본 체력 재생" to R.drawable.lol_stat_hpregen,
-                "기본 마나 재생" to R.drawable.lol_stat_manaregen,
-                "치명타 확률" to R.drawable.lol_stat_crit_chance,
-                "생명력 흡수" to R.drawable.lol_stat_life_steal,
-                "스킬 가속" to R.drawable.lol_stat_skill_time,
-                "물리 관통력" to R.drawable.lol_stat_armor_p,
-                "방어구 관통력" to R.drawable.lol_stat_armor_p,
-                "마법 관통력" to R.drawable.lol_stat_magic_p,
-                "체력 회복 및 보호막" to R.drawable.lol_stat_has,
-                "공격 사거리" to R.drawable.lol_stat_range,
+                "체력" to R.drawable.lol_stat_hp, "마나" to R.drawable.lol_stat_mana,
+                "공격력" to R.drawable.lol_stat_attack, "주문력" to R.drawable.lol_stat_magic,
+                "방어력" to R.drawable.lol_stat_armor, "마법 저항력" to R.drawable.lol_stat_magic_r,
+                "공격 속도" to R.drawable.lol_stat_attack_speed, "이동 속도" to R.drawable.lol_filter_movement_speed,
+                "기본 체력 재생" to R.drawable.lol_stat_hpregen, "기본 마나 재생" to R.drawable.lol_stat_manaregen,
+                "치명타 확률" to R.drawable.lol_stat_crit_chance, "생명력 흡수" to R.drawable.lol_stat_life_steal,
+                "스킬 가속" to R.drawable.lol_stat_skill_time, "물리 관통력" to R.drawable.lol_stat_armor_p,
+                "방어구 관통력" to R.drawable.lol_stat_armor_p, "마법 관통력" to R.drawable.lol_stat_magic_p,
+                "체력 회복 및 보호막" to R.drawable.lol_stat_has, "공격 사거리" to R.drawable.lol_stat_range,
                 "강인함" to R.drawable.lol_stat_tenacity
             )
 
@@ -338,12 +320,6 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             statsTable.addView(rowView)
         }
     }
-
-
-
-
-
-
 
     private fun loadSavedConfiguration(savedIds: List<String?>) {
         val itemIds = savedIds.filterNotNull()
@@ -363,7 +339,6 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
                     val description = doc.getString("description") ?: "설명 없음"
                     itemsMap[id] = Item(id, name, imageUrl, tags, cost, stats, effect, description)
                 }
-                // 저장된 구성 순서대로 최대 6칸에 favoriteItems에 채우기
                 for (i in 0 until 6) {
                     favoriteItems[i] = if (i < itemIds.size) itemsMap[itemIds[i]] else null
                 }
@@ -378,15 +353,25 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
     private fun updateItemSlotsUI() {
         itemSlotContainer.removeAllViews()
         for (item in favoriteItems) {
-            val imageView = ImageView(this)
-            val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            imageView.layoutParams = params
-            imageView.adjustViewBounds = true
-            imageView.scaleType = ImageView.ScaleType.FIT_CENTER
-            if (item != null) {
-                Glide.with(this).load(item.imageUrl).into(imageView)
-            } else {
-                imageView.setImageResource(R.drawable.placeholder_image)
+            val imageView = ImageView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+                ).apply {
+                    val marginDp = 4f
+                    val marginPx = TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        marginDp,
+                        resources.displayMetrics
+                    ).toInt()
+                    setMargins(marginPx, 0, marginPx, 0)
+                }
+                adjustViewBounds = true
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                if (item != null) {
+                    Glide.with(this).load(item.imageUrl).into(this)
+                } else {
+                    setImageResource(R.drawable.ic_placeslot)
+                }
             }
             itemSlotContainer.addView(imageView)
         }
@@ -415,28 +400,24 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
                     return@addOnSuccessListener
                 }
 
-                // 다이얼로그 레이아웃 inflate
                 val view = LayoutInflater.from(this)
                     .inflate(R.layout.dialog_load_configurations, null)
                 val listView = view.findViewById<ListView>(R.id.listViewConfigurations)
                 val btnEdit = view.findViewById<Button>(R.id.btnEditItemSet)
 
-                // 리스트뷰 어댑터
                 listView.adapter = ArrayAdapter(
                     this,
                     android.R.layout.simple_list_item_activated_1,
                     configs.map { it.name }
                 )
 
-                // 커스텀 타이틀 뷰
                 val titleView = TextView(this).apply {
-                    text = "불러올 구성을 선택하세요"
+                    text = "불러올 아이템 구성을 선택하세요"
                     setTextColor(Color.parseColor("#80929F"))
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                     setPadding(24, 24, 24, 12)
                 }
 
-                // 다이얼로그 빌더 & create
                 val dialog = AlertDialog.Builder(this)
                     .setCustomTitle(titleView)
                     .setView(view)
@@ -444,27 +425,20 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
                     .create()
 
                 dialog.setOnShowListener {
-                    // 전체 배경
                     dialog.window
                         ?.setBackgroundDrawable(ColorDrawable(Color.parseColor("#E7EBED")))
-
-                    // 리스트뷰 스타일
                     listView.divider = ColorDrawable(Color.parseColor("#B1C1CE"))
                     listView.dividerHeight = 1
                     listView.selector = ColorDrawable(Color.parseColor("#80929F"))
                     listView.choiceMode = ListView.CHOICE_MODE_SINGLE
-
-                    // 취소 버튼 색
                     dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
                         ?.setTextColor(Color.parseColor("#80929F"))
                 }
 
-                // 리스트 클릭
                 listView.setOnItemClickListener { _, _, pos, _ ->
                     loadSavedConfiguration(configs[pos].slots)
                     dialog.dismiss()
                 }
-                // 편집 버튼 클릭
                 btnEdit.setOnClickListener {
                     dialog.dismiss()
                     startActivity(Intent(this, ItemSelectionActivity::class.java))
@@ -477,10 +451,8 @@ class ChampcalActivity : AppCompatActivity(), ChampionSelectionDialog.ChampionSe
             }
     }
 
-
-
     override fun onChampionSelected(championId: String) {
-        currentChampionId = championId
+        currentChampionId = championId // championId == 한글 id
         loadChampionData(championId, currentLevel)
     }
 }

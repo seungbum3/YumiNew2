@@ -19,19 +19,39 @@ import com.google.firebase.ktx.Firebase
 class BanPickChampionChoice : DialogFragment() {
 
     companion object {
-        var selectedChampions = mutableSetOf<String>()
+        var selectedChampions = MutableList(20) { "" }
         var allChampions = listOf<ChampionData>()
 
-        fun newInstance(onChampionSelected: (ChampionData) -> Unit): BanPickChampionChoice {
+        fun newInstance(
+            mode: String,
+            roomId: String? = null,
+            currentTurn: String? = null,
+            onChampionSelected: (ChampionData) -> Unit
+        ): BanPickChampionChoice {
             val fragment = BanPickChampionChoice()
+            fragment.mode = mode
+            fragment.roomId = roomId
+            fragment.currentTurn = currentTurn
             fragment.onChampionSelected = onChampionSelected
             return fragment
         }
+
+        fun resetSelections() {
+            if (selectedChampions.size != BanPickChampion.pickOrder.size) {
+                selectedChampions = MutableList(BanPickChampion.pickOrder.size) { "" }
+            } else {
+                for (i in selectedChampions.indices) selectedChampions[i] = ""
+            }
+        }
     }
 
+    private var mode: String = "solo"
+    private var roomId: String? = null
+    private var currentTurn: String? = null
     private var onChampionSelected: ((ChampionData) -> Unit)? = null
     private var currentRole: String? = null
     private var selectedChampion: ChampionData? = null
+
     private lateinit var recyclerView: RecyclerView
     private lateinit var championAdapter: ChampionAdapter
     private lateinit var searchEditText: EditText
@@ -40,16 +60,10 @@ class BanPickChampionChoice : DialogFragment() {
         super.onStart()
         dialog?.window?.let { window ->
             val params = window.attributes
-            // 가로는 match_parent
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-
-            // ✅ 위에서 약간 내려서 상단 UI 보이게 하기
-            params.y = 140 // 단위: pixel (dp 아님)
-
-            // ✅ 다이얼로그 아래 margin 주기 위해 padding 추가
+            params.y = 140
             val rootView = dialog?.window?.decorView?.findViewById<View>(android.R.id.content)
-            rootView?.setPadding(0, 0, 0, 0)  // 아래에 약간 공간 주기
-
+            rootView?.setPadding(0, 0, 0, 0)
             window.attributes = params
         }
     }
@@ -64,18 +78,49 @@ class BanPickChampionChoice : DialogFragment() {
 
         view.findViewById<Button>(R.id.btn_confirm).setOnClickListener {
             selectedChampion?.let { champ ->
-                if (selectedChampions.contains(champ.id)) {
-                    Toast.makeText(requireContext(), "이미 선택된 챔피언입니다", Toast.LENGTH_SHORT).show()
+                if (mode == "solo") {
+                    val idx = BanPickChampion.currentPickIndex
+                    if (selectedChampions.contains(champ.id)) {
+                        Toast.makeText(requireContext(), "이미 선택된 챔피언입니다", Toast.LENGTH_SHORT).show()
+                    } else if (idx >= 0 && idx < selectedChampions.size) {
+                        selectedChampions[idx] = champ.id
+                        onChampionSelected?.invoke(champ)
+                        dismiss()
+                    } else {
+                        Toast.makeText(requireContext(), "선택 인덱스 오류", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
-                    selectedChampions.add(champ.id)
-                    onChampionSelected?.invoke(champ)
-                    dismiss()
+                    // 친구 방 모드
+                    if (roomId == null || currentTurn == null) {
+                        Toast.makeText(requireContext(), "방 정보가 없습니다", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+
+                    val docRef = Firebase.firestore.collection("banpick_rooms").document(roomId!!)
+                    docRef.get().addOnSuccessListener { snapshot ->
+                        val picks = snapshot.get("picks") as? Map<*, *> ?: emptyMap<Any, Any>()
+                        if (picks.containsValue(champ.id)) {
+                            Toast.makeText(requireContext(), "이미 선택된 챔피언입니다", Toast.LENGTH_SHORT).show()
+                        } else {
+                            docRef.update("picks.$currentTurn", champ.id)
+                                .addOnSuccessListener {
+                                    Toast.makeText(requireContext(), "${champ.name} 선택 완료", Toast.LENGTH_SHORT).show()
+                                    onChampionSelected?.invoke(champ)
+                                    dismiss()
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(requireContext(), "선택 실패: ${it.message}", Toast.LENGTH_SHORT).show()
+                                }
+                        }
+                    }
                 }
             } ?: Toast.makeText(requireContext(), "챔피언을 선택해주세요", Toast.LENGTH_SHORT).show()
         }
 
+
         recyclerView = view.findViewById(R.id.rv_champion_list)
         recyclerView.layoutManager = GridLayoutManager(context, 5)
+
         championAdapter = ChampionAdapter { champion ->
             selectedChampion = champion
             Toast.makeText(requireContext(), "${champion.name} 선택됨", Toast.LENGTH_SHORT).show()
@@ -164,5 +209,5 @@ class BanPickChampionChoice : DialogFragment() {
 
         championAdapter.submitList(filtered)
     }
-
 }
+

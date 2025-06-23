@@ -8,14 +8,14 @@
 
     <!-- 이미지와 X 마크가 겹쳐질 프레임 -->
     <FrameLayout
-        android:layout_width="50dp"
-        android:layout_height="50dp">
+        android:layout_width="40dp"
+        android:layout_height="40dp">
 
         <!-- 챔피언 이미지 -->
         <ImageView
             android:id="@+id/championImage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:scaleType="centerCrop" />
 
         <!-- X 오버레이 -->
@@ -23,7 +23,7 @@
             android:id="@+id/championOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/ic_x_mark"
+            android:src="@drawable/ic_delete"
             android:scaleType="centerInside"
             android:background="#80000000"
             android:visibility="gone" />
@@ -32,9 +32,9 @@
     <!-- 챔피언 이름 -->
     <TextView
         android:id="@+id/championName"
-        android:layout_width="wrap_content"
+        android:layout_width="40dp"
         android:layout_height="wrap_content"
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:textColor="#757575"
         android:gravity="center"
         android:layout_gravity="center_horizontal"

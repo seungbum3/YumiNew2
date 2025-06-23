@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E7EBED"
+    tools:context=".Main3Activity">
+
+
+    <!-- 프로필 카드 바로 아래, 위쪽 마진 20dp -->
+    <ScrollView
+        android:id="@+id/topNavLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="8dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/topNavLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnBanPick"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="30dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="10dp"
+                android:backgroundTint="#DFE7EE"
+                android:foreground="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp">
+
+                    <ImageView
+                        android:id="@+id/bgBanPick"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_gravity="left"
+                        android:layout_marginStart="10dp"
+                        android:src="@drawable/ic_simulation"
+                        android:alpha="0.12"
+                        android:scaleType="fitCenter"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="모의밴픽 시뮬레이터"
+                        android:textColor="#586A7A"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 4. 저장한 밴픽 불러오기 -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnFourth"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="10dp"
+                android:backgroundTint="#DFE7EE"
+                android:foreground="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_gravity="left"
+                        android:layout_marginStart="10dp"
+                        android:src="@drawable/ic_example"
+                        android:alpha="0.12"
+                        android:scaleType="fitCenter"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="저장한 밴픽 불러오기"
+                        android:textColor="#586A7A"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 1. 아이템 즐겨찾기 -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnMyItem"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="10dp"
+                android:backgroundTint="#DFE7EE"
+                android:foreground="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp">
+
+                    <ImageView
+                        android:id="@+id/bgMyItem"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_gravity="left"
+                        android:layout_marginStart="10dp"
+                        android:src="@drawable/ic_fav"
+                        android:alpha="0.12"
+                        android:scaleType="fitCenter"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="아이템 즐겨찾기"
+                        android:textColor="#586A7A"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 2. 챔피언 수치 계산 -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnChampCalc"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="10dp"
+                android:backgroundTint="#DFE7EE"
+                android:foreground="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/bgChampCalc"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_gravity="left"
+                        android:layout_marginStart="10dp"
+                        android:src="@drawable/ic_cal"
+                        android:alpha="0.12"
+                        android:scaleType="fitCenter"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="챔피언 수치 계산"
+                        android:textColor="#586A7A"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- 3. 챔피언 비교 -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnThird"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="10dp"
+                android:backgroundTint="#DFE7EE"
+                android:foreground="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/bgVs"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:layout_gravity="left"
+                        android:layout_marginStart="10dp"
+                        android:src="@drawable/ic_vs"
+                        android:alpha="0.12"
+                        android:scaleType="fitCenter"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:text="챔피언 비교"
+                        android:textColor="#586A7A"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+                </FrameLayout>
+            </androidx.cardview.widget.CardView>
+
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 하단 네비게이션 바 -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/tto"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/bottom_nav_item_color"
+        app:itemBackground="@android:color/transparent"
+        app:itemRippleColor="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,6 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:background="#E7EBED"
     tools:context=".NameSearchMainActivity">
 
     <!-- ▼ ConstraintLayout을 감싸서 세로 스크롤 가능 -->
@@ -164,7 +165,8 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="챔피언"
-                    android:textSize="10sp"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white" />
 
                 <TextView
@@ -172,39 +174,44 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="게임 수"
-                    android:textSize="10sp"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white" />
 
                 <TextView
                     android:layout_width="65dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="승률"
-                    android:textSize="10sp"
+                    android:text=" 승률"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white" />
 
                 <TextView
                     android:layout_width="86dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="K"
-                    android:textSize="10sp"
+                    android:text=" K"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white" />
 
                 <TextView
                     android:layout_width="20dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="D"
-                    android:textSize="10sp"
+                    android:text=" D"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white" />
 
                 <TextView
                     android:layout_width="80dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="A"
-                    android:textSize="10sp"
+                    android:text=" A"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white" />
 
                 <TextView
@@ -212,15 +219,17 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="CS"
-                    android:textSize="10sp"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white" />
 
                 <TextView
                     android:layout_width="85dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="골드"
-                    android:textSize="10sp"
+                    android:text="  골드"
+                    android:textSize="8sp"
+                    android:textStyle="bold"
                     android:textColor="@android:color/white" />
             </LinearLayout>
         </HorizontalScrollView>
@@ -244,7 +253,7 @@
                 android:padding="5dp" />
         </HorizontalScrollView>
 
-        <!-- 하단 큐 타입 버튼 (전체/솔로랭크/자유랭크/일반/칼바람 등) -->
+        <!-- 하단 큐 타입 버튼 (전체/솔로랭크/자유랭크/칼바람 등) -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnAll_bottom"
             android:layout_width="70dp"
@@ -326,10 +335,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="승률 60%"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="4dp"/>
 
         <!-- 예: 10전 승 6 패 4 -->
         <LinearLayout
@@ -344,7 +353,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="10전 "
-                android:textSize="10sp"
+                android:textSize="9sp"
                 android:textColor="@android:color/black"/>
 
             <TextView
@@ -352,7 +361,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="3승 "
-                android:textSize="10sp"
+                android:textSize="9sp"
                 android:textColor="#007BFF" />
 
             <TextView
@@ -360,7 +369,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="4패 "
-                android:textSize="10sp"
+                android:textSize="9sp"
                 android:textColor="#FF0000"/>
         </LinearLayout>
     </LinearLayout>
@@ -386,10 +395,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="평점 3.05"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginBottom="4dp"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -403,7 +412,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="5.7"
-            android:textSize="10sp"
+            android:textSize="9sp"
             android:textColor="#007BFF"
         />
 
@@ -412,7 +421,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=" / "
-            android:textSize="10sp"
+            android:textSize="9sp"
             android:textColor="@android:color/black"/>
 
         <TextView
@@ -420,7 +429,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="4.9"
-            android:textSize="10sp"
+            android:textSize="9sp"
             android:textColor="#FF0000" />
 
         <TextView
@@ -428,7 +437,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=" / "
-            android:textSize="10sp"
+            android:textSize="9sp"
             android:textColor="@android:color/black"/>
 
         <TextView
@@ -436,7 +445,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="9.3"
-            android:textSize="10sp"
+            android:textSize="9sp"
             android:textColor="#FFA500"/>
 
         </LinearLayout>

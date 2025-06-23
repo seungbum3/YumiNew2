@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.yumi2.Main3Activity
 import com.example.yumi2.MainpageActivity
 import com.example.yumi2.MyPageActivity
 import com.example.yumi2.R
@@ -77,7 +78,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigation)
-        bottomNavigationView.selectedItemId = R.id.category4
+        bottomNavigationView.selectedItemId = R.id.category2
         bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.category1 -> {
@@ -87,6 +88,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.category2 -> true
                 R.id.category3 -> {
+                    startActivity(Intent(this, Main3Activity::class.java))
                     finish()
                     true
                 }

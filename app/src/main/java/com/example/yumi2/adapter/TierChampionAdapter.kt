@@ -31,11 +31,8 @@ class TierChampionAdapter(
 
     override fun onBindViewHolder(holder: TierViewHolder, position: Int) {
         val champion = championList[position]
-
-        // ✅ 순위, 이름, 이미지 설정
         holder.tvRank.text = (position + 1).toString()
         holder.tvChampionName.text = champion.name
-
         Glide.with(holder.itemView.context)
             .load(champion.iconUrl)
             .placeholder(R.drawable.loading_icon)
@@ -51,6 +48,10 @@ class TierChampionAdapter(
             }
             context.startActivity(intent)
         }
+
+        holder.itemView.findViewById<TextView>(R.id.tvWinRate).text = "${champion.winRate}%"
+        holder.itemView.findViewById<TextView>(R.id.tvPickRate).text = "${champion.pickRate}%"
+        holder.itemView.findViewById<TextView>(R.id.tvBanRate).text = "${champion.banRate}%"
 
         // 로그 출력
         Log.d("TierChampionAdapter", "Binding [${position + 1}] ${champion.name}, icon: ${champion.iconUrl}")
