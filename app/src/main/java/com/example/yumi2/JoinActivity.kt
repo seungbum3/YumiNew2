@@ -6,6 +6,8 @@ import android.util.Patterns
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.viewModels
+import coil.load
+import coil.transform.RoundedCornersTransformation
 import com.example.yumi2.viewmodel.RegisterViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,6 +36,11 @@ class JoinActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.join)
+
+        val appLogo = findViewById<ImageView>(R.id.appLogo)
+        appLogo.load(R.drawable.yumi_icon) {
+            transformations(RoundedCornersTransformation(15f)) // 10f == 10dp (원하는 만큼 조절)
+        }
 
         auth = FirebaseAuth.getInstance()
 

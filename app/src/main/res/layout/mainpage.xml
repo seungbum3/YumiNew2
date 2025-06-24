@@ -14,8 +14,8 @@
         android:layout_height="40dp"
         android:layout_marginTop="50dp"
         android:layout_marginStart="10dp"
-        android:background="@drawable/rouned_image"
-        android:clipToOutline="true"
+        android:src="@drawable/yumi_icon"
+        android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/NameSearchBtn" />
@@ -170,8 +170,6 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:src="@drawable/yumi_icon"
-            android:background="@drawable/rouned_image"
-            android:clipToOutline="true"
             android:layout_marginEnd="8dp"/>
 
         <TextView

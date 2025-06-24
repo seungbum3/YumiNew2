@@ -13,6 +13,8 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
+import coil.transform.RoundedCornersTransformation
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.yumi2.comment.MainActivity
@@ -41,6 +43,11 @@ class MyPageActivity : AppCompatActivity(), ProfileEditDialog.ProfileUpdateListe
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mypage)
+
+        val imageView2 = findViewById<ImageView>(R.id.imageView2)
+        imageView2.load(R.drawable.yumi_icon) {
+            transformations(RoundedCornersTransformation(15f)) // 10f == 10dp (원하는 만큼 조절)
+        }
 
         emptyFriendsText = findViewById(R.id.emptyFriendsText)
         emptyFavoritesText = findViewById(R.id.emptyFavoritesText)

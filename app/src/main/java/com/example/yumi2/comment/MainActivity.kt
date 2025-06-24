@@ -1,5 +1,6 @@
 package com.example.yumi2.comment
 
+import coil.load
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -7,11 +8,14 @@ import android.text.TextWatcher
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
+import coil.transform.RoundedCornersTransformation
 import com.example.yumi2.Main3Activity
 import com.example.yumi2.MainpageActivity
 import com.example.yumi2.MyPageActivity
@@ -28,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var currentCategory: String
     private lateinit var latestButton: Button
     private lateinit var popularButton: Button
+    private lateinit var allButton: Button
     private var isPopularMode = false
 
     private val freeBoardList = mutableListOf<Post>()
@@ -41,9 +46,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val appLogo = findViewById<ImageView>(R.id.appLogo)
+        appLogo.load(R.drawable.yumi_icon) {
+            transformations(RoundedCornersTransformation(15f)) // 10f == 10dp (원하는 만큼 조절)
+        }
+
         searchEditText = findViewById(R.id.search_edit_text)
         latestButton = findViewById(R.id.btn_latest)
         popularButton = findViewById(R.id.btn_popular)
+        allButton = findViewById(R.id.btn_all)
         currentCategory = "자유"
 
         freeBoardAdapter = FreeBoardAdapter(this, freeBoardList)
@@ -55,10 +66,20 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = freeBoardAdapter
 
+        val spacingDp = 8 // 원하는 여백(dps)
+        val spacingPx = (spacingDp * resources.displayMetrics.density).toInt()
+        recyclerView.addItemDecoration(VerticalSpaceItemDecoration(spacingPx))
+
         findViewById<TextView>(R.id.text_free).setOnClickListener { changeCategory("자유") }
         findViewById<TextView>(R.id.text_rank).setOnClickListener { changeCategory("랭크") }
         findViewById<TextView>(R.id.text_normal).setOnClickListener { changeCategory("일반") }
         findViewById<TextView>(R.id.text_champion).setOnClickListener { changeCategory("챔피언 빌드") }
+
+        allButton.setOnClickListener {
+            showAllPosts()
+            highlightSortButton(allButton)
+        }
+
 
         findViewById<Button>(R.id.button3).setOnClickListener {
             val options = arrayOf("새게시글", "임시저장")
@@ -132,6 +153,57 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         loadPosts()
     }
+
+    private fun showAllPosts() {
+        firestore.collection("posts")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("FirestoreError", "전체 게시글 불러오기 실패: ${error.message}")
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val postList = mutableListOf<Post>()
+                    for (document in snapshot.documents) {
+                        val title = document.getString("title") ?: ""
+                        val content = document.getString("content") ?: ""
+                        val category = document.getString("category") ?: ""
+                        val timestamp = document.getLong("timestamp") ?: 0L
+                        val views = document.getLong("views")?.toInt() ?: 0
+                        val postId = document.id
+                        val imageUrl = document.getString("imageUrl") ?: ""
+                        val uid = document.getString("uid") ?: ""
+                        val nickname = document.getString("nickname") ?: ""
+                        postList.add(Post(title, content, category, timestamp, views, postId, imageUrl, uid, nickname))
+                    }
+                    // 최신순으로 정렬
+                    postList.sortByDescending { it.timestamp }
+                    // 자유게시판 리스트에 보여주게(카테고리 상관없이 전부)
+                    freeBoardList.clear()
+                    freeBoardList.addAll(postList)
+                    freeBoardAdapter.notifyDataSetChanged()
+                    // 랭크/일반/챔피언 리스트는 비움
+                    rankBoardList.clear()
+                    normalBoardList.clear()
+                    championBoardList.clear()
+                    val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+                    recyclerView.adapter = freeBoardAdapter
+                }
+            }
+    }
+
+    private fun highlightSortButton(selected: Button) {
+        val allButtons = listOf(latestButton, popularButton, allButton)
+        for (btn in allButtons) {
+            if (btn == selected) {
+                btn.setBackgroundTintList(getColorStateList(R.color.selected_tab))
+                btn.setTextColor(getColor(R.color.selected_tab_text))
+            } else {
+                btn.setBackgroundTintList(getColorStateList(R.color.default_tab))
+                btn.setTextColor(getColor(R.color.default_tab_text))
+            }
+        }
+    }
+
 
     private fun loadPosts() {
         firestore.collection("posts")

@@ -2,6 +2,6 @@
 <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/dot"
     android:layout_width="8dp"
-    android:layout_height="20dp"
+    android:layout_height="8dp"
     android:layout_gravity="center"
     android:background="@drawable/tab_dot_unselected" />

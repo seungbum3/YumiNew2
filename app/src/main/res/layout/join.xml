@@ -24,8 +24,7 @@
         android:layout_height="50dp"
         android:layout_marginTop="70dp"
         android:layout_marginStart="80dp"
-        android:background="@drawable/rouned_image"
-        android:clipToOutline="true"
+        android:src="@drawable/yumi_icon"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/appName" />

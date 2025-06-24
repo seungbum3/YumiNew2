@@ -15,4 +15,9 @@
     <color name="yumi_blue">#86B7FF</color>
     <color name="yumi_red">#FF9494</color>
     <color name="my_custom_blue_50">#80007BB8</color>
+    <color name="selected_tab">#4682B4</color>
+    <color name="default_tab">#B1C1CE</color>
+    <color name="selected_tab_text">#FFFFFF</color>
+    <color name="default_tab_text">#FFFFFF</color>
+
 </resources>

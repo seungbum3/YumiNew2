@@ -19,7 +19,10 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import android.util.Patterns
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatDelegate
+import coil.load
+import coil.transform.RoundedCornersTransformation
 import com.google.firebase.messaging.FirebaseMessaging
 
 class LoginActivity : AppCompatActivity() {
@@ -35,6 +38,11 @@ class LoginActivity : AppCompatActivity() {
         delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_NO
         super.onCreate(savedInstanceState)
         setContentView(R.layout.login)
+
+        val appLogo = findViewById<ImageView>(R.id.appLogo)
+        appLogo.load(R.drawable.yumi_icon) {
+            transformations(RoundedCornersTransformation(15f)) // 10f == 10dp (원하는 만큼 조절)
+        }
 
         auth = FirebaseAuth.getInstance()
 

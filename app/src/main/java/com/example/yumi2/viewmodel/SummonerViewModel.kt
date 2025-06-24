@@ -27,7 +27,7 @@ import java.net.URL
 
 class SummonerViewModel : ViewModel() {
 
-    private val riotApiKey = "RGAPI-0b181b1b-c02a-42b0-a58f-707fb197fcfd"
+    private val riotApiKey = "RGAPI-9cea349b-59cd-41c5-a51c-ba91e56fcde9"
 
     private val repository = SummonerRepository()
 

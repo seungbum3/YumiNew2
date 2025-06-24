@@ -1,5 +1,7 @@
 package com.example.yumi2
 
+import coil.load
+import coil.transform.RoundedCornersTransformation
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -53,6 +55,16 @@ class MainpageActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.mainpage)
         SettingsActivity.applyUserTheme(this)
+
+        val appLogo = findViewById<ImageView>(R.id.appLogo)
+        appLogo.load(R.drawable.yumi_icon) {
+            transformations(RoundedCornersTransformation(15f)) // 10f == 10dp (원하는 만큼 조절)
+        }
+
+        val imageView2 = findViewById<ImageView>(R.id.imageView2)
+        imageView2.load(R.drawable.yumi_icon) {
+            transformations(RoundedCornersTransformation(15f)) // 10f == 10dp (원하는 만큼 조절)
+        }
 
         val rotationButton: Button = findViewById(R.id.Champion_rotation)
         rotationButton.text = "이번주 로테이션 챔피언 ( ${getRotationDateRange()} )"
@@ -209,6 +221,7 @@ class MainpageActivity : AppCompatActivity() {
         }
     }
 
+
     fun getRotationDateRange(): String {
         val today = java.util.Calendar.getInstance()
 
@@ -217,7 +230,7 @@ class MainpageActivity : AppCompatActivity() {
         val startDate = today.time
 
         // 다음 주 월요일로 이동
-        today.add(java.util.Calendar.DATE, 7)
+        today.add(java.util.Calendar.DATE, 6)
         val endDate = today.time
 
         // 날짜 포맷 지정

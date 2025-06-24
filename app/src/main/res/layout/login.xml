@@ -10,12 +10,11 @@
 
     <ImageView
         android:id="@+id/appLogo"
+        android:src="@drawable/yumi_icon"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginTop="100dp"
         android:layout_marginStart="80dp"
-        android:background="@drawable/rouned_image"
-        android:clipToOutline="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/appName" />

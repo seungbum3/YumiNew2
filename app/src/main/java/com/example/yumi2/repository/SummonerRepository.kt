@@ -24,7 +24,7 @@ import com.example.yumi2.model.toResponse
 import kotlinx.coroutines.delay
 
 class SummonerRepository {
-    private val apiKey = "RGAPI-0b181b1b-c02a-42b0-a58f-707fb197fcfd"
+    private val apiKey = "RGAPI-9cea349b-59cd-41c5-a51c-ba91e56fcde9"
 
     private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
 
