@@ -128,7 +128,7 @@ class NameSearchActivity : AppCompatActivity() {
                     null
                 }
 
-                // 2차 fallback 검색 (이후 호출에도 딜레이)
+                // 2차 fallback 검색
                 if (summoner == null && tagLine != "KR1" && tagLine != "KR2") {
                     delay(1200L)
                     summoner = try {
@@ -146,23 +146,37 @@ class NameSearchActivity : AppCompatActivity() {
                     errorText.visibility = TextView.VISIBLE
                 } else {
                     errorText.visibility = TextView.GONE
+
                     val correctedGameName = summoner.gameName ?: gameName
                     val correctedTagLine = summoner.tagLine ?: tagLine
+
+                    // ✅ UI에 보여줄 닉네임은 # 포맷
                     val formattedName = "$correctedGameName#$correctedTagLine"
 
-                    val index = nameSearchList.indexOfFirst { it.equals(formattedName, ignoreCase = true) }
+                    // ✅ Firestore 문서 ID에 사용할 안전한 포맷 (현재는 getSummonerInfo() 내부에서 사용됨)
+                    val safeDocId = "${correctedGameName}_${correctedTagLine}"
+
+                    // 🔹 리스트에서 기존에 있던 항목 제거 후 맨 위로 재추가
+                    val index =
+                        nameSearchList.indexOfFirst { it.equals(formattedName, ignoreCase = true) }
                     if (index != -1) {
                         nameSearchList.removeAt(index)
                         adapter.notifyItemRemoved(index)
                     }
+
                     nameSearchList.add(0, formattedName)
                     adapter.notifyItemInserted(0)
                     saveRecentSearches(uid)
 
-                    startActivity(Intent(this@NameSearchActivity, NameSearchMainActivity::class.java).apply {
-                        putExtra("gameName", correctedGameName)
-                        putExtra("tagLine", correctedTagLine)
-                    })
+                    // 🔹 다음 화면으로 이동
+                    startActivity(
+                        Intent(
+                            this@NameSearchActivity,
+                            NameSearchMainActivity::class.java
+                        ).apply {
+                            putExtra("gameName", correctedGameName)
+                            putExtra("tagLine", correctedTagLine)
+                        })
                 }
 
                 // 버튼 재활성화

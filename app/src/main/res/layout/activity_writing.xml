@@ -103,9 +103,9 @@
             android:id="@+id/textSelectedItems"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="아이템: 없음"
+            android:text="없음"
             android:textColor="@android:color/black"
-            android:textSize="16sp"
+            android:textSize="13sp"
             android:layout_marginTop="4dp"
             android:layout_gravity="center_horizontal"/>
 

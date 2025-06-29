@@ -147,10 +147,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="아이템: 없음"
+                android:text="없음"
                 android:visibility="gone"
                 android:textColor="#555555"
-                android:textSize="16sp"
+                android:textSize="13sp"
                 app:layout_constraintTop_toBottomOf="@id/detail_post_content"
                 app:layout_constraintStart_toStartOf="parent" />
 

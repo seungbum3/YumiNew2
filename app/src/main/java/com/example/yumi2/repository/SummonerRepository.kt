@@ -2,6 +2,7 @@ package com.example.yumi2.repository
 
 import retrofit2.HttpException
 import android.util.Log
+import com.example.yumi2.api.RiotApiClient
 import com.example.yumi2.api.RiotApiService
 import com.example.yumi2.model.AccountResponse
 import com.example.yumi2.model.ChampionStats
@@ -13,6 +14,7 @@ import com.example.yumi2.model.Summoner
 import com.example.yumi2.model.SummonerResponse
 import com.example.yumi2.util.ChampionMappingUtil
 import com.example.yumi2.util.ChampionMappingUtil.championIdToName
+import com.example.yumi2.util.extractSeason
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,7 +26,7 @@ import com.example.yumi2.model.toResponse
 import kotlinx.coroutines.delay
 
 class SummonerRepository {
-    private val apiKey = "RGAPI-9cea349b-59cd-41c5-a51c-ba91e56fcde9"
+    private val apiKey = "RGAPI-311dcbc8-723e-4e24-9318-1e0a2caf28f4"
 
     private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
 
@@ -385,36 +387,59 @@ class SummonerRepository {
                 Log.d("SummonerRepository", "puuidResponse 객체: $puuidResponse")
 
                 val summonerId = puuidResponse.summonerId ?: ""
-                if (summonerId.isEmpty()) {
-                    Log.e("SummonerRepository", "⚠️ Summoner ID가 없습니다! 랭크 정보를 불러올 수 없습니다.")
-                    return null
+                var solo: RankInfo? = null
+                var flex: RankInfo? = null
+
+                if (summonerId.isNotEmpty()) {
+                    val rankInfo = getRankInfo(summonerId)
+                    solo = rankInfo.first?.let {
+                        RankInfo(
+                            tier = it.tier,
+                            rank = it.rank,
+                            leaguePoints = it.leaguePoints,
+                            wins = it.wins,
+                            losses = it.losses
+                        )
+                    }
+                    flex = rankInfo.second?.let {
+                        RankInfo(
+                            tier = it.tier,
+                            rank = it.rank,
+                            leaguePoints = it.leaguePoints,
+                            wins = it.wins,
+                            losses = it.losses
+                        )
+                    }
+                } else {
+                    Log.w("SummonerRepository", "⚠️ summonerId가 없어 랭크 정보는 생략됩니다.")
                 }
 
-                // 랭크 정보 가져오기
-                val rankInfo = getRankInfo(summonerId)
+                val safeDocId = "${response.gameName}_${response.tagLine}"  // 🔄 저장도 언더스코어로 통일
 
-                // ✅ LeagueEntry → RankInfo 로 변환
-                val solo = rankInfo.first?.let {
-                    RankInfo(
-                        tier = it.tier,
-                        rank = it.rank,
-                        leaguePoints = it.leaguePoints,
-                        wins = it.wins,
-                        losses = it.losses
-                    )
-                }
+                val data = mutableMapOf<String, Any>(
+                    "puuid" to puuidResponse.puuid,
+                    "summonerId" to summonerId,
+                    "gameName" to response.gameName,
+                    "tagLine" to response.tagLine,
+                    "profileIconId" to puuidResponse.profileIconId,
+                    "summonerLevel" to puuidResponse.summonerLevel
+                )
+                if (solo != null) data["soloRank"] = solo
+                if (flex != null) data["flexRank"] = flex
 
-                val flex = rankInfo.second?.let {
-                    RankInfo(
-                        tier = it.tier,
-                        rank = it.rank,
-                        leaguePoints = it.leaguePoints,
-                        wins = it.wins,
-                        losses = it.losses
-                    )
-                }
+                db.collection("users")
+                    .document(uid)
+                    .collection("SearchNameList")
+                    .document(safeDocId)
+                    .set(data, SetOptions.merge())  // 🔄 null 필드 병합 방지
+                    .addOnSuccessListener {
+                        Log.d("SummonerRepository", "Firestore 저장 성공! (null 필드는 제외됨)")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("SummonerRepository", "Firestore 저장 실패: $e")
+                    }
 
-                val summonerResponse = SummonerResponse(
+                SummonerResponse(
                     puuid = puuidResponse.puuid,
                     summonerId = summonerId,
                     gameName = response.gameName,
@@ -424,20 +449,6 @@ class SummonerRepository {
                     soloRank = solo,
                     flexRank = flex
                 )
-
-                db.collection("users")
-                    .document(uid)
-                    .collection("SearchNameList")
-                    .document(summonerId)
-                    .set(summonerResponse, SetOptions.merge())
-                    .addOnSuccessListener {
-                        Log.d("SummonerRepository", "Firestore 저장 성공!")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("SummonerRepository", "Firestore 저장 실패: $e")
-                    }
-
-                summonerResponse
             } else {
                 Log.e("SummonerRepository", "⚠️ PUUID가 비어 있음.")
                 null
@@ -451,6 +462,9 @@ class SummonerRepository {
             null
         }
     }
+
+
+
 
 
     // PUUID 기반 소환사 정보 조회

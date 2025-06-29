@@ -55,6 +55,7 @@ class ItemSelectionDialog : DialogFragment() {
 
         // 파이어스토어에서 아이템 전체 불러오기
         FirebaseFirestore.getInstance().collection("items")
+            .whereEqualTo("isActive", true)    // <- 추가!
             .get()
             .addOnSuccessListener { snapshot ->
                 itemList.clear()
@@ -64,6 +65,7 @@ class ItemSelectionDialog : DialogFragment() {
                 }
                 adapter.notifyDataSetChanged()
             }
+
 
         // 검색 기능
         etSearch.addTextChangedListener(object : TextWatcher {

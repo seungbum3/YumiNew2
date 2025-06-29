@@ -109,7 +109,7 @@ class WritingActivity : AppCompatActivity() {
             }
 
             // 제목 길이 제한 (예: 10글자 이내)
-            if (title.length > 10) {
+            if (title.length > 40) {
                 Toast.makeText(this, "제목은 10글자 이내여야 합니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }

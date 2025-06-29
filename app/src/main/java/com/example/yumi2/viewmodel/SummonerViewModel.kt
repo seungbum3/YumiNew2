@@ -6,12 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.yumi2.api.RiotApiClient
 import com.example.yumi2.model.ChampionStats
 import com.example.yumi2.model.ChampionStatsCache
+import com.example.yumi2.model.LeagueEntry
 import com.example.yumi2.model.MatchHistoryCache
 import com.example.yumi2.model.MatchHistoryItem
 import com.example.yumi2.model.RankInfo
 import com.example.yumi2.model.RecentMatchesAggregate
 import com.example.yumi2.model.SummonerResponse
 import com.example.yumi2.repository.SummonerRepository
+import com.example.yumi2.util.ChampionMappingUtil
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +29,7 @@ import java.net.URL
 
 class SummonerViewModel : ViewModel() {
 
-    private val riotApiKey = "RGAPI-9cea349b-59cd-41c5-a51c-ba91e56fcde9"
+    private val riotApiKey = "RGAPI-311dcbc8-723e-4e24-9318-1e0a2caf28f4"
 
     private val repository = SummonerRepository()
 
@@ -382,13 +384,14 @@ class SummonerViewModel : ViewModel() {
         }
     }
 
-    private suspend fun getSummonerFromFirestore(uid: String, puuid: String): SummonerResponse? {
+    private suspend fun getSummonerFromFirestore(uid: String, gameName: String, tagLine: String): SummonerResponse? {
         return try {
+            val safeDocId = "${gameName}_${tagLine}"  // 🔄 언더스코어 형식 통일
             val firestore = FirebaseFirestore.getInstance()
             val docRef = firestore.collection("users")
                 .document(uid)
                 .collection("SearchNameList")
-                .document(puuid)
+                .document(safeDocId)
             val snapshot = docRef.get().await()
             if (!snapshot.exists()) return null
 
@@ -396,7 +399,7 @@ class SummonerViewModel : ViewModel() {
             val soloRankData = data["soloRank"] as? Map<String, Any>
             val flexRankData = data["flexRank"] as? Map<String, Any>
 
-            val soloRank = soloRankData?.let { it: Map<String, Any> ->
+            val soloRank = soloRankData?.let {
                 RankInfo(
                     tier = it["tier"] as? String ?: "",
                     rank = it["rank"] as? String ?: "",
@@ -406,7 +409,7 @@ class SummonerViewModel : ViewModel() {
                 )
             }
 
-            val flexRank = flexRankData?.let { it: Map<String, Any> ->
+            val flexRank = flexRankData?.let {
                 RankInfo(
                     tier = it["tier"] as? String ?: "",
                     rank = it["rank"] as? String ?: "",
@@ -417,10 +420,11 @@ class SummonerViewModel : ViewModel() {
             }
 
             SummonerResponse(
-                puuid = data["puuid"] as String,
-                gameName = data["gameName"] as String,
-                tagLine = data["tagLine"] as String,
-                profileIconId = (data["profileIconId"] as Long).toInt(),
+                puuid = data["puuid"] as? String ?: "",
+                summonerId = data["summonerId"] as? String ?: "",
+                gameName = data["gameName"] as? String ?: "",
+                tagLine = data["tagLine"] as? String ?: "",
+                profileIconId = (data["profileIconId"] as? Long)?.toInt() ?: 0,
                 summonerLevel = (data["summonerLevel"] as? Long)?.toInt() ?: 0,
                 soloRank = soloRank,
                 flexRank = flexRank
@@ -430,6 +434,7 @@ class SummonerViewModel : ViewModel() {
             null
         }
     }
+
 
     fun searchSummoner(gameName: String, tagLine: String, uid: String) {
         viewModelScope.launch {
